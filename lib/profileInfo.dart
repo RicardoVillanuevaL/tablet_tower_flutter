@@ -19,6 +19,7 @@ class ProfileInfo extends StatefulWidget {
 }
 
 class _ProfileInfoState extends State<ProfileInfo> {
+  String statusConnection;
   bool _connectionStatus;
   Connectivity connectivity;
   StreamSubscription<ConnectivityResult> subscription;
@@ -39,8 +40,9 @@ class _ProfileInfoState extends State<ProfileInfo> {
       });
     });
     if (iconData == null || color == null) {
+      statusConnection = 'Error de conexión';
       iconData = Icons.find_replace;
-      color = Colors.yellow;
+      color = Colors.orange;
     }
   }
 
@@ -56,10 +58,12 @@ class _ProfileInfoState extends State<ProfileInfo> {
       iconData = Icons.check_circle;
       color = Colors.green;
       _connectionStatus = true;
+      statusConnection = 'Conexión Exitosa';
     } else {
       iconData = Icons.error;
       color = Colors.red;
       _connectionStatus = false;
+      statusConnection = 'No existe conexión';
     }
   }
 
@@ -85,6 +89,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
       RepositoryServicesLocal.addNotificacion(notification);
     } else {
       RepositoryServicesLocal.addMarcado(marcation);
+      RepositoryServicesLocal.addEmpleado(perfil);
       RepositoryServicesLocal.addNotificacion(notification);
     }
   }
@@ -110,7 +115,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
             },
           ),
         ),
-        floatingActionButton: FloatStatus(color, iconData),
+        floatingActionButton: FloatStatus(color, iconData, statusConnection),
       );
     } else {
       return Scaffold(
@@ -131,7 +136,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
             },
           ),
         ),
-        floatingActionButton: FloatStatus(color, iconData),
+        floatingActionButton: FloatStatus(color, iconData, statusConnection),
       );
     }
   }
@@ -184,35 +189,41 @@ class _ProfileInfoState extends State<ProfileInfo> {
     int tTotalActual = hActual * 60 + mActual;
     int tiempoRest = tTotalFin - tTotalActual;
 
+    ///////////--LLENADO DE MODELOS--/////////////
+    model.empleadoDni = data;
+    marcationModel.marcadoDni = data;
+    marcationModel.marcadoFechaHora = tiempoActual.toString();
+    marcationModel.marcadoDataQr = data;
+    marcationModel.marcadoIdTelefono = model.empleadoTelefono;
+    marcationModel.marcadoTiempo = tiempoActual.toString();
+    marcationModel.marcadoTemperatura = 0.0;
+    notificationModel.idTelefono = model.empleadoTelefono;
+    notificationModel.fechahora = tiempoActual.toString();
+    geolocalizacion();
     if ((tTotalActual > tTotalInicio || tTotalActual == tTotalInicio) &&
         tTotalActual < tTotalFin) {
-      geolocalizacion();
-      marcationModel.marcadoDni = data;
-      marcationModel.marcadoFechaHora = tiempoActual.toString();
-      marcationModel.marcadoDataQr = data;
-      marcationModel.marcadoIdTelefono = model.empleadoTelefono;
       marcationModel.marcadoMotivo = 'Hora de almuerzo';
       marcationModel.marcadoTipo = 'Refrigerio';
-      marcationModel.marcadoTiempo = tiempoActual.toString();
-      marcationModel.marcadoTemperatura = 0.0;
-
-      notificationModel.idTelefono = model.empleadoTelefono;
-      notificationModel.fechahora = tiempoActual.toString();
       notificationModel.titulo = 'Refrigerio';
       notificationModel.cuerpo =
           '${model.empleadoNombre} ${model.empleadoApellido} marcó su hora de almuerzo';
-
       tiempoText =
           'Su tiempo de estancia en el comedor es de $tiempoRest minutos';
-      model.empleadoDni = data;
       services(marcationModel, notificationModel, model, model.empleadoToken);
     } else {
+      marcationModel.marcadoMotivo = 'Acceso denegado almuerzo';
+      marcationModel.marcadoTipo = 'Refrigerio fuera de hora';
+      notificationModel.titulo = 'Acceso denegado refrigerio';
+      notificationModel.cuerpo =
+          '${model.empleadoNombre} ${model.empleadoApellido} intento marcar su hora de almuerzo, se le denegó la entrada al comedor';
+
       int tiempoJ = tTotalActual - tTotalFin;
       color = Colors.red;
       paseText = 'PASE DENEGADO';
       tiempoJ = tiempoJ.abs();
       tiempoText =
           'Ya han pasado $tiempoJ minutos, Para que ingrese al comedor';
+      services(marcationModel, notificationModel, model, model.empleadoToken);
     }
 
     back();
@@ -277,7 +288,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
 class FloatStatus extends StatelessWidget {
   final Color colors;
   final IconData icon;
-  const FloatStatus(this.colors, this.icon);
+  final String statusConnect;
+  const FloatStatus(this.colors, this.icon, this.statusConnect);
 
   @override
   Widget build(BuildContext context) {
@@ -290,6 +302,16 @@ class FloatStatus extends StatelessWidget {
           size: 40.0,
           color: Colors.white,
         ),
-        onPressed: () {});
+        onPressed: () {
+          Scaffold.of(context).showSnackBar(SnackBar(
+            content: Text(statusConnect,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                )),
+            backgroundColor: colors,
+            duration: Duration(seconds: 3),
+          ));
+        });
   }
 }
