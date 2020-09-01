@@ -164,7 +164,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     int tTotalFin = hFin * 60 + mFin;
     int tTotalActual = hActual * 60 + mActual;
     int tiempoRest = tTotalFin - tTotalActual;
-
+    print(tiempoRest);
     ///////////--LLENADO DE MODELOS--/////////////
     model.empleadoDni = data;
     marcationModel.marcadoDni = data;
