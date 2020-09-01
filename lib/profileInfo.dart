@@ -8,7 +8,6 @@ import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
 import 'package:tablet_tower_flutter/models/NotificacionModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
-import 'package:tablet_tower_flutter/services/all_services.dart';
 
 class ProfileInfo extends StatefulWidget {
   final String data;
@@ -30,6 +29,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
   NotificationModel notificationModel = NotificationModel();
   @override
   void initState() {
+    _connectionStatus = false;
     data = this.widget.data;
     super.initState();
     connectivity = new Connectivity();
@@ -82,8 +82,6 @@ class _ProfileInfoState extends State<ProfileInfo> {
   void services(MarcationModel marcation, NotificationModel notification,
       PerfilModel perfil, String token) async {
     if (_connectionStatus) {
-      await allservices.registrarMarcacion(marcation, token);
-      await allservices.registrarNotification(notification, token);
       RepositoryServicesLocal.addMarcado(marcation);
       RepositoryServicesLocal.addEmpleado(perfil);
       RepositoryServicesLocal.addNotificacion(notification);
@@ -92,15 +90,15 @@ class _ProfileInfoState extends State<ProfileInfo> {
       RepositoryServicesLocal.addEmpleado(perfil);
       RepositoryServicesLocal.addNotificacion(notification);
     }
+    print('REGISTRO');
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_connectionStatus) {
       return Scaffold(
         body: Center(
           child: FutureBuilder(
-            future: allservices.encuentraTrabajador(data),
+            future: RepositoryServicesLocal.consultarEmpleado(data),
             builder:
                 (BuildContext context, AsyncSnapshot<PerfilModel> snapshot) {
               if (snapshot.hasData) {
@@ -117,28 +115,6 @@ class _ProfileInfoState extends State<ProfileInfo> {
         ),
         floatingActionButton: FloatStatus(color, iconData, statusConnection),
       );
-    } else {
-      return Scaffold(
-        body: Center(
-          child: FutureBuilder(
-            future: RepositoryServicesLocal.consultarEmpleadoJson(data),
-            builder:
-                (BuildContext context, AsyncSnapshot<PerfilModel> snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data != null) {
-                  return infoCard(snapshot.data);
-                } else {
-                  return errorInfo();
-                }
-              } else {
-                return CircularProgressIndicator();
-              }
-            },
-          ),
-        ),
-        floatingActionButton: FloatStatus(color, iconData, statusConnection),
-      );
-    }
   }
 
   errorInfo() {
@@ -171,7 +147,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
   }
 
   infoCard(PerfilModel model) {
-    Color color = Color(0xFF76FF03);
+    Color color = Color(0xFF76F011);
     String paseText = 'PASE CONCEDIDO';
     String tiempoText = '';
     String horaInicio = model.horaInicio;
@@ -200,6 +176,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     notificationModel.idTelefono = model.empleadoTelefono;
     notificationModel.fechahora = tiempoActual.toString();
     geolocalizacion();
+    tiempoText='Bienvenido al comedor, que disfrute su refrigerio';
     if ((tTotalActual > tTotalInicio || tTotalActual == tTotalInicio) &&
         tTotalActual < tTotalFin) {
       marcationModel.marcadoMotivo = 'Hora de almuerzo';
@@ -207,8 +184,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
       notificationModel.titulo = 'Refrigerio';
       notificationModel.cuerpo =
           '${model.empleadoNombre} ${model.empleadoApellido} marcó su hora de almuerzo';
-      tiempoText =
-          'Su tiempo de estancia en el comedor es de $tiempoRest minutos';
+      // tiempoText =
+      //     'Su tiempo de estancia en el comedor es de $tiempoRest minutos';
       services(marcationModel, notificationModel, model, model.empleadoToken);
     } else {
       marcationModel.marcadoMotivo = 'Acceso denegado almuerzo';
@@ -221,8 +198,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
       color = Colors.red;
       paseText = 'PASE DENEGADO';
       tiempoJ = tiempoJ.abs();
-      tiempoText =
-          'Ya han pasado $tiempoJ minutos, Para que ingrese al comedor';
+      // tiempoText =
+      //     'Ya han pasado $tiempoJ minutos, Para que ingrese al comedor';
       services(marcationModel, notificationModel, model, model.empleadoToken);
     }
 

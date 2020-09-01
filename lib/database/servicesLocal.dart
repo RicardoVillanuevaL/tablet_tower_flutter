@@ -2,44 +2,78 @@ import 'package:tablet_tower_flutter/database/database.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
 import 'package:tablet_tower_flutter/models/NotificacionModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
-import 'package:tablet_tower_flutter/models/TempModel.dart';
 
 class RepositoryServicesLocal {
   static Future<PerfilModel> consultarEmpleado(String dni) async {
-    final query = '''SELECT * FROM ${DatabaseCreator.tableEmpleado}
+    PerfilModel result = PerfilModel();
+    try {
+      final query = '''SELECT * FROM ${DatabaseCreator.tableEmpleado}
               WHERE ${DatabaseCreator.empleado_dni} = ? ''';
-    List<dynamic> params = [dni];
-    final data = await db.rawQuery(query, params);
-    final perfil = PerfilModel.fromJsonLocal(data.first);
-    return perfil;
+      List<dynamic> params = [dni];
+      final data = await db.rawQuery(query, params);
+      result = PerfilModel.fromJsonLocal(data.first);
+    } catch (e) {
+      print(e);
+      result.empleadoNombre = dni;
+      result.empleadoDni = dni;
+      result.empleadoApellido = ' ';
+      result.empleadoTelefono = ' ';
+      result.horaInicio = '10:00:00';
+      result.horaFin = '23:00:00';
+    }
+    return result;
   }
 
-  static Future<PerfilModel> consultarEmpleadoJson(String dni) async {
-    PerfilModel empleado = PerfilModel();
-    final resp = await rootBundle.loadString('assets/empleado.json');
-    Map<String, ModelTemp> dataMap = modelTempFromJson(resp);
-    ModelTemp temp  = dataMap[dni];
-    empleado.empleadoDni = temp.empleadoDni;
-    empleado.empleadoNombre = temp.empleadoNombre;
-    empleado.empleadoApellido = temp.empleadoApellido;
-    empleado.empleadoEmail = temp.empleadoEmail;
-    empleado.empleadoFoto = null;
-    empleado.empleadoImei = null;
-    empleado.empleadoTelefono = temp.empleadoTelefono;
-    empleado.empleadoTokencelular = null;
-    empleado.empleadoUltimoIngreso = null;
-    empleado.idArea = null;
-    empleado.usuarioDniJefe = null;
-    empleado.empleadoContrasena = null;
-    empleado.idEmpresa = null;
-    empleado.idTurno = null;
-    empleado.horaInicio='12:00:00';
-    empleado.horaFin ='15:00:00';
+  static Future<List<PerfilModel>> updatesEmployee() async {
+    final query = '''SELECT * FROM ${DatabaseCreator.tableEmpleado} 
+        WHERE ${DatabaseCreator.empleado_dni} = ${DatabaseCreator.empleado_nombre}''';
+    final data = await db.rawQuery(query);
 
-    print(empleado);
-    return empleado;
+    List<PerfilModel> listEmployee = List();
+    for (final nodo in data) {
+      final temp = PerfilModel.fromJsonLocal(nodo);
+      listEmployee.add(temp);
+    }
+    return listEmployee;
+  }
+
+    static Future<List<PerfilModel>> selectAllEmployee() async {
+    final query = '''SELECT * FROM ${DatabaseCreator.tableEmpleado}''';
+    final data = await db.rawQuery(query);
+
+    List<PerfilModel> listEmployee = List();
+    for (final nodo in data) {
+      final temp = PerfilModel.fromJsonLocal(nodo);
+      listEmployee.add(temp);
+    }
+    return listEmployee;
+  }
+
+  static Future<bool> actualizarData(PerfilModel model) async {
+    bool success;
+    try {
+      final sql = '''UPDATE ${DatabaseCreator.tableEmpleado} 
+      SET ${DatabaseCreator.empleado_nombre} = ?,
+      ${DatabaseCreator.empleado_apellido} = ?,
+      ${DatabaseCreator.empleado_telefono} = ?
+      WHERE ${DatabaseCreator.empleado_dni} = ?
+      ''';
+      List<dynamic> params = [
+        model.empleadoNombre,
+        model.empleadoApellido,
+        model.empleadoTelefono,
+        model.empleadoDni
+      ];
+      final result = await db.rawUpdate(sql, params);
+      DatabaseCreator.databaseLog(
+          'actualizar empleado', sql, null, result, params);
+      success = true;
+    } catch (e) {
+      print(e);
+      success = false;
+    }
+    return success;
   }
 
   static Future<void> addEmpleado(PerfilModel model) async {
@@ -62,7 +96,9 @@ class RepositoryServicesLocal {
     try {
       final result = await db.rawInsert(query, params);
       DatabaseCreator.databaseLog('Add Empleado', query, null, result, params);
-    } catch (e) { print(e);}
+    } catch (e) {
+      print(e);
+    }
   }
 
   static Future<void> addMarcado(MarcationModel model) async {

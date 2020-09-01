@@ -1,8 +1,8 @@
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tablet_tower_flutter/HomePage.dart';
 import 'package:tablet_tower_flutter/database/database.dart';
-import 'package:tablet_tower_flutter/profileInfo.dart';
+import 'package:tablet_tower_flutter/loginPage.dart';
 
 /// Forces landscape-only mode application-wide
 /// Use this Mixin on the main app widget i.e. app.Dart
@@ -73,70 +73,11 @@ class MyApp extends StatelessWidget with LandScapeModeMixin {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(),
+      initialRoute: 'home',
       routes: {
-        'home' :(_) => MyHomePage(),
+        'home': (_) => MyHomePage(),
+        'login': (_)=> LoginPage()
       },
     );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void openLector() async {
-    await new Future.delayed(const Duration(seconds: 5), () {
-      marcationType();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    openLector();
-    final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width - 30.0;
-    final screenHeight = screenSize.height - 30.0;
-    return Scaffold(
-      body: Center(
-        child: GestureDetector(
-          onTap: () => marcationType(),
-          child: Container(
-            height: screenHeight,
-            width: screenWidth,
-            child: FittedBox(
-              child: Image.asset('assets/logo_toweramdtower.png'),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  marcationType() async {
-    String futureString = '';
-    try {
-      futureString = await BarcodeScanner.scan();
-      if (futureString != null) {
-        String contenido = futureString;
-        print(contenido);
-
-        // Navigator.pushNamedAndRemoveUntil(
-        //     context,
-        //     MaterialPageRoute(builder: (context) => ProfileInfo(contenido)),
-        //     (_) => false);
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ProfileInfo(contenido)));
-      }
-    } catch (e) {
-      futureString = e.toString();
-    }
   }
 }
