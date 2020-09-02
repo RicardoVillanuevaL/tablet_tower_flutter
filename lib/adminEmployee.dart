@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/detailEmployee.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
-import 'package:tablet_tower_flutter/services/addEmployee.dart';
+import 'package:tablet_tower_flutter/reportePage.dart';
+import 'package:tablet_tower_flutter/addEmployee.dart';
 
 class AdminEmpoyee extends StatefulWidget {
   @override
@@ -24,19 +25,25 @@ class _AdminEmpoyeeState extends State<AdminEmpoyee> {
         ),
         onPressed: () {
           Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => AddEmployee()));
+              .push(MaterialPageRoute(builder: (context) => AddEmployee()))
+              .then((value) {
+            setState(() {});
+          });
         }));
+    floatButton.add(null);
     floatButton.add(null);
     floatButton.add(null);
     //AGREGAMOS LAS VISTAS
     vistas.add(ListEmpleadosGeneral());
     vistas.add(ListSpecialEmployee());
     vistas.add(SincronizacionPage());
+    vistas.add(ReportePage());
 
     //AGREGAMOS LOS TITULOS
     titles.add('Lista de Empleados');
     titles.add('Lista de Trabajadores por actualizar');
     titles.add('Sincronización');
+    titles.add('Generar Reportes');
 
     //AGREGAMOS LOS BNB
     listBottom.add(BottomNavigationBarItem(
@@ -51,6 +58,15 @@ class _AdminEmpoyeeState extends State<AdminEmpoyee> {
         icon: Icon(Icons.cloud_upload),
         title: Text("Sincronización"),
         backgroundColor: Color(0xFF388E3C)));
+    listBottom.add(BottomNavigationBarItem(
+        icon: Icon(Icons.cloud_upload),
+        title: Text("Reportes"),
+        backgroundColor: Color(0xFF388E3C)));
+  }
+
+  @override
+  void setState(fn) {
+    super.setState(fn);
   }
 
   @override
@@ -189,11 +205,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   }
 
   widgetInfo(double height) {
-    return Column(
-      children: [
-        
-      ]
-    );
+    return Column(children: []);
   }
 
   wigdetStates(double height) {
@@ -205,7 +217,9 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
             image: AssetImage(stateConnection),
             height: 100,
           ), //IMAGEN DE ESTADO DE CONEXION
-          SizedBox(height: 30,),
+          SizedBox(
+            height: 30,
+          ),
           Image(
             image: AssetImage(stateSincronic),
             height: 100,

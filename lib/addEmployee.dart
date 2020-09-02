@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
+import 'package:tablet_tower_flutter/utils/notifications.dart' as alerta;
+
 
 class AddEmployee extends StatefulWidget {
   @override
@@ -64,7 +66,8 @@ class _AddEmployeeState extends State<AddEmployee> {
       RepositoryServicesLocal.addEmpleado(model);
       Navigator.of(context).pop();
     } else {
-      //NO SE PUEDE REGISTRAR DATOS EN BLANCO
+      //NO SE PUEDE REGISTRAR DATOS EN BLANCO+
+      alerta.mostraralerta(context, 'ALERTA!', 'No se pueden registrar datos en blanco');
     }
   }
 
@@ -85,7 +88,9 @@ class _AddEmployeeState extends State<AddEmployee> {
                   TextInputType.name),
               boxForm('TELEFONO:', model.empleadoTelefono, controllerTelefono,
                   TextInputType.number),
-              FloatingActionButton(onPressed: () {})
+              FloatingActionButton(onPressed: () {
+                registrarEmpleado();
+              },child: Icon(Icons.add,size: 30,),)
             ],
           ),
         ),
