@@ -1,9 +1,17 @@
+import 'dart:async';
+
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/detailEmployee.dart';
+import 'package:tablet_tower_flutter/models/MarcationModel.dart';
+import 'package:tablet_tower_flutter/models/NotificacionModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
 import 'package:tablet_tower_flutter/reportePage.dart';
 import 'package:tablet_tower_flutter/addEmployee.dart';
+import 'package:tablet_tower_flutter/services/all_services.dart';
+import 'package:tablet_tower_flutter/utils/notifications.dart' as alerta;
 
 class AdminEmpoyee extends StatefulWidget {
   @override
@@ -194,35 +202,186 @@ class SincronizacionPage extends StatefulWidget {
 }
 
 class _SincronizacionPageState extends State<SincronizacionPage> {
-  String stateConnection;
-  String stateSincronic;
+  StreamSubscription<ConnectivityResult> subscription;
+  bool _connectionStatus;
+  Connectivity connectivity;
+  String imageStateConnection;
+  String imageStateSincronic;
+  String messageStateConnection;
+  String messageStateSincronic;
+  bool state;
+  String diaActual;
+  ////////LISTAS PARA SINCRONIZAR
+  List<MarcationModel> listaMarcaciones;
+  List<NotificationModel> listaNotificaciones;
 
   @override
   void initState() {
-    stateConnection = 'assets/connectionSuccess.png';
-    stateSincronic = 'assets/uploadData.png';
+    _connectionStatus = false;
+    connectivity = new Connectivity();
+    subscription =
+        connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        setStatus(result);
+      });
+    });
+    imageStateConnection = 'assets/loader.png';
+    imageStateSincronic = 'assets/cloudLoad.png';
+    messageStateConnection = 'Estabilizando conexiones . . .';
+    messageStateSincronic = 'Cargando registros . . .';
+    listaMarcaciones = List();
+    listaNotificaciones = List();
+    state = false;
+    final df = new DateFormat('dd-MM-yyyy');
+    diaActual = df.format(DateTime.now());
+    loadDataSincronization();
     super.initState();
   }
 
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
+  }
+
+  setStatus(ConnectivityResult result) {
+    if (result == ConnectivityResult.wifi ||
+        result == ConnectivityResult.mobile) {
+      imageStateConnection = 'assets/connectionSuccess.png';
+      _connectionStatus = true;
+      messageStateConnection = 'Conexión Exitosa';
+    } else {
+      imageStateConnection = 'assets/connectionError.png';
+      _connectionStatus = false;
+      messageStateConnection = 'No existe conexión';
+    }
+  }
+
+  loadDataSincronization() async {
+    try {
+      listaMarcaciones = await RepositoryServicesLocal.listarMarcaciones();
+      listaNotificaciones = await RepositoryServicesLocal.listaNotificaciones();
+      if (listaMarcaciones.length > 0 && listaNotificaciones.length > 0) {
+        setState(() {
+          imageStateSincronic = 'assets/cloud_server.png';
+          messageStateSincronic = 'Registros cargados para sincronizar';
+          state = true;
+        });
+      } else {
+        imageStateSincronic = 'assets/cloudLoad.png';
+        messageStateSincronic = 'Ya casi están los registros listos';
+      }
+    } catch (e) {
+      imageStateSincronic = 'assets/cloudError.png';
+      messageStateSincronic = 'Oh no!, Error al cargar los registros';
+    }
+  }
+
   widgetInfo(double height) {
-    return Column(children: []);
+    return Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+              child: Text('Información de la tablet',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87))),
+          Flexible(
+              child: Text('Información de la conexión: $messageStateConnection',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87))),
+          Flexible(
+              child: Text(
+                  'Información de la última sincronización: $messageStateSincronic',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87))),
+          SizedBox(
+            height: 30,
+          ),
+          button(),
+          SizedBox(
+            height: 30,
+          ),
+        ]);
+  }
+
+  sincronizarData(BuildContext context, int cantidad) {
+    int cantidadData = 0;
+    try {
+      for (var node in listaMarcaciones) {
+        allservices.registrarMarcacion(node, '77154956');
+        cantidadData++;
+        setState(() {
+          messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
+        });
+      }
+      for (var node in listaNotificaciones) {
+        allservices.registrarNotification(node, '77154956');
+        setState(() {
+          messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
+        });
+      }
+      alerta.alertaConImagen(context, 'Exitó!', 'La sincronización fue exitosa',
+          'assets/cloudSuccess.png');
+      setState(() {
+        imageStateSincronic = 'assets/cloudSuccess.png';
+      });
+    } catch (e) {
+      alerta.alertaConImagen(
+          context, 'Oh no!', 'Ocurrio un error', 'assets/cloudError.png');
+      print(e);
+      setState(() {
+        imageStateSincronic = 'assets/cloudError.png';
+      });
+    }
+  }
+
+  button() {
+    if (state && _connectionStatus) {
+      return OutlineButton.icon(
+        color: Colors.green,
+        onPressed: () {
+          sincronizarData(
+              context, listaMarcaciones.length + listaNotificaciones.length);
+        },
+        icon: Icon(Icons.cloud_upload),
+        label: Text(
+          'Sincronizar',
+          style: TextStyle(fontSize: 20),
+        ),
+      );
+    } else {
+      return Container();
+    }
   }
 
   wigdetStates(double height) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image(
-            image: AssetImage(stateConnection),
-            height: 100,
+            image: AssetImage(imageStateConnection),
+            fit: BoxFit.fill,
+            height: height / 4,
           ), //IMAGEN DE ESTADO DE CONEXION
           SizedBox(
             height: 30,
           ),
           Image(
-            image: AssetImage(stateSincronic),
-            height: 100,
+            image: AssetImage(imageStateSincronic),
+            fit: BoxFit.fill,
+            height: height / 4,
           )
         ], //IMAGEN DE ESTADO DE SINCRONIZACION
       ),

@@ -1,8 +1,8 @@
 import 'package:tablet_tower_flutter/database/database.dart';
+import 'package:tablet_tower_flutter/models/InnerJoinModel.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
 import 'package:tablet_tower_flutter/models/NotificacionModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
-
 
 class RepositoryServicesLocal {
   static Future<PerfilModel> consultarEmpleado(String dni) async {
@@ -38,7 +38,7 @@ class RepositoryServicesLocal {
     return listEmployee;
   }
 
-    static Future<List<PerfilModel>> selectAllEmployee() async {
+  static Future<List<PerfilModel>> selectAllEmployee() async {
     final query = '''SELECT * FROM ${DatabaseCreator.tableEmpleado}''';
     final data = await db.rawQuery(query);
 
@@ -48,6 +48,24 @@ class RepositoryServicesLocal {
       listEmployee.add(temp);
     }
     return listEmployee;
+  }
+
+  static Future<List<ReporteModel>> selectReporte() async {
+    final query =
+        '''SELECT M.marcado_dni, E.empleado_nombre, E.empleado_apellido,
+            M.marcado_fecha_hora, M.marcado_tiempo, M.marcado_latitud,M.marcado_longitud,
+            M.marcado_tipo,M.marcado_temperatura FROM marcado	M
+            INNER JOIN empleado E ON M.marcado_dni = E.empleado_dni''';
+
+    final data = await db.rawQuery(query);
+
+    List<ReporteModel> listaReporte = List();
+    for (final node in data) {
+      final temp = ReporteModel.fromJsonLocal(node);
+      listaReporte.add(temp);
+    }
+    print(listaReporte);
+    return listaReporte;
   }
 
   static Future<bool> actualizarData(PerfilModel model) async {
@@ -99,6 +117,29 @@ class RepositoryServicesLocal {
     } catch (e) {
       print(e);
     }
+  }
+
+  static Future<List<MarcationModel>> listarMarcaciones() async{
+    final query = '''SELECT * FROM ${DatabaseCreator.tableMarcado}''';
+    final data = await db.rawQuery(query);
+
+    List<MarcationModel> listMarcaciones = List();
+    for (final nodo in data) {
+      final temp = MarcationModel.fromJsonLocal(nodo);
+      listMarcaciones.add(temp);
+    }
+    return listMarcaciones;
+  }
+  static Future<List<NotificationModel>> listaNotificaciones()async{
+    final query = '''SELECT * FROM ${DatabaseCreator.tableNotificacion}''';
+    final data = await db.rawQuery(query);
+
+    List<NotificationModel> listNotificaciones = List();
+    for (final nodo in data) {
+      final temp = NotificationModel.fromJsonLocal(nodo);
+      listNotificaciones.add(temp);
+    }
+    return listNotificaciones;
   }
 
   static Future<void> addMarcado(MarcationModel model) async {
