@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/InnerJoinModel.dart';
+import 'package:tablet_tower_flutter/services/all_services.dart';
 import 'package:tablet_tower_flutter/utils/notifications.dart' as alerta;
 
 class ReportePage extends StatefulWidget {
@@ -16,14 +17,18 @@ class ReportePage extends StatefulWidget {
 class _ReportePageState extends State<ReportePage> {
   String imageState;
   String messageState;
-  bool state;
+  bool state, send;
   List<ReporteModel> listaData;
   String diaActual;
+  File file;
+  TextEditingController _controller;
 
   @override
   void initState() {
+    _controller = TextEditingController();
     listaData = List();
     state = false;
+    send = false;
     imageState = 'assets/xlsLoad.png';
     messageState = 'Generando reporte . . .';
     final df = new DateFormat('dd-MM-yyyy');
@@ -61,16 +66,31 @@ class _ReportePageState extends State<ReportePage> {
 
       String csv = const ListToCsvConverter().convert(csvData);
       final String dir = (await getExternalStorageDirectory()).path;
-      final String path = '$dir/reporteTablet $diaActual.xlsx';
-      final File file = File(path);
+      final String path = '$dir/reporteTablet $diaActual.csv';
+      file = File(path);
       await file.writeAsString(csv);
       alerta.alertaConImagen(
           context, 'Exito!', 'Ya se creó el reporte', 'assets/xls.png');
-          print(path);
+      setState(() {
+        send = true;
+      });
     } catch (e) {
       alerta.mostraralerta(
           context, 'Alerta!', 'Error al generar o descargar el reporte');
-          print(e);
+      print(e);
+    }
+  }
+
+  sendEmail() async {
+    final response = await allservices.sendEmail2('Reporte de la Tablet',
+        _controller.text, 'Este es el reporte generado $diaActual', file);
+
+    if (response == 1) {
+      alerta.alertaConImagen(context, 'Envió Exitoso',
+          'El mensaje se envió correctamente', 'assets/send.png');
+    } else {
+      alerta.alertaConImagen(context, 'Oh no!',
+          'Error al enviar el mensaje', 'assets/sendError.png');
     }
   }
 
@@ -103,6 +123,7 @@ class _ReportePageState extends State<ReportePage> {
         imageState = 'assets/xlsError.png';
         messageState = 'Error al generar el reporte';
       });
+      print(e);
     }
   }
 
@@ -116,15 +137,18 @@ class _ReportePageState extends State<ReportePage> {
             child: Text(
               messageState,
               style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.black26),
             ),
           ),
           SizedBox(
-            height: 30,
+            height: 10,
           ),
-          button()
+          button(),
+          SizedBox(
+            height: 10,
+          ),
         ],
       ),
     );
@@ -140,7 +164,52 @@ class _ReportePageState extends State<ReportePage> {
         icon: Icon(Icons.file_download),
         label: Text(
           'Descargar',
-          style: TextStyle(fontSize: 20),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18),
+        ),
+      );
+    } else {
+      return Container();
+    }
+  }
+
+  sendButton() {
+    if (send) {
+      return Card(
+        color: Colors.white70,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        margin: EdgeInsets.only(left: 10, right: 10),
+        child: Padding(
+          padding:
+              const EdgeInsets.only(top: 8, bottom: 8, left: 30, right: 30),
+          child: Column(
+            children: [
+              TextField(
+                controller: _controller,
+                maxLines: 1,
+                decoration: InputDecoration(
+                    hintText: 'E-mail', icon: Icon(Icons.mail_outline)),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              RaisedButton.icon(
+                color: Colors.blue,
+                onPressed: () {
+                  sendEmail();
+                },
+                icon: Icon(
+                  Icons.mail_outline,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  'Enviar',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     } else {

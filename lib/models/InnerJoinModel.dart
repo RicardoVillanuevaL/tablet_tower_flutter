@@ -33,7 +33,7 @@ class ReporteModel {
   String marcadoLatitud;
   String marcadoLongitud;
   String marcadoTipo;
-  int marcadoTemperatura;
+  double marcadoTemperatura;
 
   factory ReporteModel.fromJson(Map<String, dynamic> json) => ReporteModel(
         marcadoDni: json["marcado_dni"],
@@ -44,7 +44,7 @@ class ReporteModel {
         marcadoLatitud: json["marcado_latitud"],
         marcadoLongitud: json["marcado_longitud"],
         marcadoTipo: json["marcado_tipo"],
-        marcadoTemperatura: json["marcado_temperatura"],
+        marcadoTemperatura: json["marcado_temperatura"].toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -68,6 +68,6 @@ class ReporteModel {
     this.marcadoLatitud = jsonLocal[DatabaseCreator.marcado_latitud];
     this.marcadoLongitud = jsonLocal[DatabaseCreator.marcado_longitud];
     this.marcadoTipo = jsonLocal[DatabaseCreator.marcado_tipo];
-    this.marcadoTemperatura = jsonLocal[DatabaseCreator.marcado_temperatura];
+    this.marcadoTemperatura = jsonLocal[DatabaseCreator.marcado_temperatura].toDouble();
   }
 }

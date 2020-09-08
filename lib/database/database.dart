@@ -122,9 +122,7 @@ class DatabaseCreator {
     final databasePath = await getDatabasesPath();
     final path = join(databasePath, dbName);
 
-    //make sure the folder exists
     if (await Directory(dirname(path)).exists()) {
-      //await deleteDatabase(path);
     } else {
       await Directory(dirname(path)).create(recursive: true);
     }

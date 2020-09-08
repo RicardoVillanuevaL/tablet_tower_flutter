@@ -214,6 +214,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   ////////LISTAS PARA SINCRONIZAR
   List<MarcationModel> listaMarcaciones;
   List<NotificationModel> listaNotificaciones;
+  PerfilModel tokenAdmin;
 
   @override
   void initState() {
@@ -229,6 +230,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     imageStateSincronic = 'assets/cloudLoad.png';
     messageStateConnection = 'Estabilizando conexiones . . .';
     messageStateSincronic = 'Cargando registros . . .';
+    tokenAdmin = PerfilModel();
     listaMarcaciones = List();
     listaNotificaciones = List();
     state = false;
@@ -259,6 +261,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
 
   loadDataSincronization() async {
     try {
+      tokenAdmin = await allservices.encuentraTrabajador('77154956');
       listaMarcaciones = await RepositoryServicesLocal.listarMarcaciones();
       listaNotificaciones = await RepositoryServicesLocal.listaNotificaciones();
       if (listaMarcaciones.length > 0 && listaNotificaciones.length > 0) {
@@ -272,9 +275,11 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         messageStateSincronic = 'Ya casi están los registros listos';
       }
     } catch (e) {
+      print(e);
       imageStateSincronic = 'assets/cloudError.png';
       messageStateSincronic = 'Oh no!, Error al cargar los registros';
     }
+    print(tokenAdmin.empleadoToken);
   }
 
   widgetInfo(double height) {
@@ -291,7 +296,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
                       color: Colors.black87))),
           Flexible(
               child: Text('Información de la conexión: $messageStateConnection',
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.start,
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -299,7 +304,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
           Flexible(
               child: Text(
                   'Información de la última sincronización: $messageStateSincronic',
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.start,
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -318,14 +323,15 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     int cantidadData = 0;
     try {
       for (var node in listaMarcaciones) {
-        allservices.registrarMarcacion(node, '77154956');
+        allservices.registrarMarcacion(node, tokenAdmin.empleadoToken);
         cantidadData++;
         setState(() {
           messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
         });
       }
       for (var node in listaNotificaciones) {
-        allservices.registrarNotification(node, '77154956');
+        allservices.registrarNotification(node, tokenAdmin.empleadoToken);
+        cantidadData++;
         setState(() {
           messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
         });

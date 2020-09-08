@@ -65,7 +65,7 @@ class MarcationModel {
         this.marcadoFechaHora = jsonLocal[DatabaseCreator.marcado_fecha_hora];
         this.marcadoTipo = jsonLocal[DatabaseCreator.marcado_tipo];
         this.marcadoMotivo = jsonLocal[DatabaseCreator.marcado_motivo];
-        this.marcadoTemperatura = jsonLocal[DatabaseCreator.marcado_temperatura];
+        this.marcadoTemperatura = jsonLocal[DatabaseCreator.marcado_temperatura].toDouble();
         this.marcadoTiempo = jsonLocal[DatabaseCreator.marcado_tiempo];
     }
 }
