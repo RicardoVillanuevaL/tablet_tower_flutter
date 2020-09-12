@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'package:connectivity/connectivity.dart';
+import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
@@ -12,109 +11,112 @@ import 'package:tablet_tower_flutter/models/PerfilModel.dart';
 class ProfileInfo extends StatefulWidget {
   final String data;
   ProfileInfo(this.data);
-
   @override
   _ProfileInfoState createState() => _ProfileInfoState();
 }
 
 class _ProfileInfoState extends State<ProfileInfo> {
-  String statusConnection;
-  bool _connectionStatus;
-  Connectivity connectivity;
-  StreamSubscription<ConnectivityResult> subscription;
+  String futureString;
   String data;
-  IconData iconData;
-  Color color;
   MarcationModel marcationModel = MarcationModel();
   NotificationModel notificationModel = NotificationModel();
+  //////////////
+  int state = 0;
   @override
   void initState() {
-    _connectionStatus = false;
+    futureString = '';
     data = this.widget.data;
     super.initState();
-    connectivity = new Connectivity();
-    subscription =
-        connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+  }
+
+  marcationType() async {
+    try {
+      futureString = await BarcodeScanner.scan();
+      if (futureString != null) {
+        if (futureString.trim().length == 8) {
+          setState(() {
+            state = 1;
+            futureString = futureString.trim();
+          });
+        } else {
+          setState(() {
+            state = 2;
+          });
+        }
+      }
+    } catch (e) {
+      print(e);
       setState(() {
-        setStatus(result);
+        state = 3;
       });
-    });
-    if (iconData == null || color == null) {
-      statusConnection = 'Error de conexión';
-      iconData = Icons.find_replace;
-      color = Colors.orange;
     }
-  }
-
-  @override
-  void dispose() {
-    subscription.cancel();
-    super.dispose();
-  }
-
-  void setStatus(ConnectivityResult result) {
-    if (result == ConnectivityResult.wifi ||
-        result == ConnectivityResult.mobile) {
-      iconData = Icons.check_circle;
-      color = Colors.green;
-      _connectionStatus = true;
-      statusConnection = 'Conexión Exitosa';
-    } else {
-      iconData = Icons.error;
-      color = Colors.red;
-      _connectionStatus = false;
-      statusConnection = 'No existe conexión';
-    }
-  }
-
-  geolocalizacion() async {
-    GeolocationStatus geolocationStatus =
-        await Geolocator().checkGeolocationPermissionStatus();
-    print(geolocationStatus.toString());
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    notificationModel.latitud = position.latitude.toString();
-    notificationModel.longitud = position.longitude.toString();
-    marcationModel.marcadoLatitud = position.latitude.toString();
-    marcationModel.marcadoLongitud = position.longitude.toString();
-  }
-
-  void services(MarcationModel marcation, NotificationModel notification,
-      PerfilModel perfil, String token) async {
-    if (_connectionStatus) {
-      RepositoryServicesLocal.addMarcado(marcation);
-      RepositoryServicesLocal.addEmpleado(perfil);
-      RepositoryServicesLocal.addNotificacion(notification);
-    } else {
-      RepositoryServicesLocal.addMarcado(marcation);
-      RepositoryServicesLocal.addEmpleado(perfil);
-      RepositoryServicesLocal.addNotificacion(notification);
-    }
-    print('REGISTRO');
   }
 
   @override
   Widget build(BuildContext context) {
-      return Scaffold(
-        body: Center(
-          child: FutureBuilder(
-            future: RepositoryServicesLocal.consultarEmpleado(data),
+    contentWidget() {
+      if (state == 0) {
+        marcationType();
+      } else if (state == 1) {
+        return FutureBuilder(
+            future: RepositoryServicesLocal.consultarEmpleado(futureString),
             builder:
                 (BuildContext context, AsyncSnapshot<PerfilModel> snapshot) {
               if (snapshot.hasData) {
                 if (snapshot.data != null) {
-                  return infoCard(snapshot.data);
+                  return infoCard(snapshot.data, context);
                 } else {
-                  return errorInfo();
+                  return Container();
                 }
               } else {
-                return CircularProgressIndicator();
+                return Container();
               }
-            },
+            });
+      } else if (state == 2) {
+        return errorInfo();
+      } else if (state == 3) {
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              Text(
+                'Se detuvó el scanner!',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              FloatingActionButton(
+                child: Icon(
+                  Icons.replay,
+                  color: Colors.white,
+                  size: 30,
+                ),
+                backgroundColor: Colors.blueAccent,
+                onPressed: () {
+                  setState(() {
+                    state = 0;
+                  });
+                },
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                'Abrir Scanner',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+            ],
           ),
-        ),
-        floatingActionButton: FloatStatus(color, iconData, statusConnection),
-      );
+        );
+      }
+    }
+
+    return Scaffold(
+      body: Center(child: contentWidget()),
+    );
   }
 
   errorInfo() {
@@ -132,6 +134,26 @@ class _ProfileInfoState extends State<ProfileInfo> {
         ));
   }
 
+  geolocalizacion() async {
+    notificationModel.latitud = 'latitud Tablet';
+    notificationModel.longitud = 'longitud Tablet';
+    marcationModel.marcadoLatitud = 'latitud Tablet';
+    marcationModel.marcadoLongitud = 'longitud Tablet';
+  }
+
+  void services(BuildContext context, MarcationModel marcation,
+      NotificationModel notification, PerfilModel perfil, String token) async {
+    RepositoryServicesLocal.addMarcado(marcation);
+    RepositoryServicesLocal.addEmpleado(perfil);
+    RepositoryServicesLocal.addNotificacion(notification);
+    Future.delayed(const Duration(seconds: 5), () {
+      setState(() {
+        state = 0;
+      });
+    });
+    print('REGISTRO');
+  }
+
   imagen(String cadena) {
     if (cadena == null) {
       return Image.asset('assets/image_default.png');
@@ -140,13 +162,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     }
   }
 
-  back() async {
-    Future.delayed(const Duration(seconds: 5), () {
-      Navigator.pushNamedAndRemoveUntil(context, 'home', (_) => false);
-    });
-  }
-
-  infoCard(PerfilModel model) {
+  infoCard(PerfilModel model, BuildContext context) {
     Color color = Color(0xFF76F011);
     String paseText = 'PASE CONCEDIDO';
     String tiempoText = '';
@@ -166,8 +182,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
     int tiempoRest = tTotalFin - tTotalActual;
     print(tiempoRest);
     ///////////--LLENADO DE MODELOS--/////////////
-    model.empleadoDni = data;
-    marcationModel.marcadoDni = data;
+    model.empleadoDni = futureString;
+    marcationModel.marcadoDni = futureString;
     marcationModel.marcadoFechaHora = tiempoActual.toString();
     marcationModel.marcadoDataQr = data;
     marcationModel.marcadoIdTelefono = model.empleadoTelefono;
@@ -176,7 +192,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     notificationModel.idTelefono = model.empleadoTelefono;
     notificationModel.fechahora = tiempoActual.toString();
     geolocalizacion();
-    tiempoText='Bienvenido al comedor, que disfrute su refrigerio';
+    tiempoText = 'Bienvenido al comedor, que disfrute su refrigerio';
     if ((tTotalActual > tTotalInicio || tTotalActual == tTotalInicio) &&
         tTotalActual < tTotalFin) {
       marcationModel.marcadoMotivo = 'Hora de almuerzo';
@@ -184,9 +200,9 @@ class _ProfileInfoState extends State<ProfileInfo> {
       notificationModel.titulo = 'Refrigerio';
       notificationModel.cuerpo =
           '${model.empleadoNombre} ${model.empleadoApellido} marcó su hora de almuerzo';
-      // tiempoText =
-      //     'Su tiempo de estancia en el comedor es de $tiempoRest minutos';
-      services(marcationModel, notificationModel, model, model.empleadoToken);
+      // tiempoText = 'Su tiempo de estancia en el comedor es de $tiempoRest minutos';
+      services(context, marcationModel, notificationModel, model,
+          model.empleadoToken);
     } else {
       marcationModel.marcadoMotivo = 'Acceso denegado almuerzo';
       marcationModel.marcadoTipo = 'Refrigerio fuera de hora';
@@ -200,10 +216,10 @@ class _ProfileInfoState extends State<ProfileInfo> {
       tiempoJ = tiempoJ.abs();
       // tiempoText =
       //     'Ya han pasado $tiempoJ minutos, Para que ingrese al comedor';
-      services(marcationModel, notificationModel, model, model.empleadoToken);
+      services(context, marcationModel, notificationModel, model,
+          model.empleadoToken);
     }
 
-    back();
     final screenSize = MediaQuery.of(context).size;
     final screenHeight = screenSize.height / 1.2;
     return Container(
@@ -215,80 +231,47 @@ class _ProfileInfoState extends State<ProfileInfo> {
         child: Padding(
           padding:
               const EdgeInsets.only(top: 5, bottom: 5, left: 50, right: 50),
-          child: Flexible(
-            child: Column(
-              children: [
-                Text(
-                  paseText,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 30,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+          child: Column(
+            children: [
+              Text(
+                paseText,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
-                Container(
-                  margin: EdgeInsets.only(bottom: 10, top: 10),
-                  height: screenHeight / 2,
-                  child: FittedBox(
-                    fit: BoxFit.fill,
-                    child: imagen(model.empleadoFoto),
-                  ),
+              ),
+              Container(
+                margin: EdgeInsets.only(bottom: 10, top: 10),
+                height: screenHeight / 2,
+                child: FittedBox(
+                  fit: BoxFit.fill,
+                  child: imagen(model.empleadoFoto),
                 ),
-                Text(
-                  '${model.empleadoNombre} ${model.empleadoApellido}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              Text(
+                '${model.empleadoNombre} ${model.empleadoApellido}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
-                Text(
-                  tiempoText,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )
-              ],
-            ),
+              ),
+              Text(
+                tiempoText,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            ],
           ),
         ),
       ),
     );
-  }
-}
-
-class FloatStatus extends StatelessWidget {
-  final Color colors;
-  final IconData icon;
-  final String statusConnect;
-  const FloatStatus(this.colors, this.icon, this.statusConnect);
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-        backgroundColor: colors,
-        elevation: 0,
-        highlightElevation: 0,
-        child: Icon(
-          icon,
-          size: 40.0,
-          color: Colors.white,
-        ),
-        onPressed: () {
-          Scaffold.of(context).showSnackBar(SnackBar(
-            content: Text(statusConnect,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                )),
-            backgroundColor: colors,
-            duration: Duration(seconds: 3),
-          ));
-        });
   }
 }

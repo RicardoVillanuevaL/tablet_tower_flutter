@@ -34,9 +34,7 @@ class _AdminEmpoyeeState extends State<AdminEmpoyee> {
         onPressed: () {
           Navigator.of(context)
               .push(MaterialPageRoute(builder: (context) => AddEmployee()))
-              .then((value) {
-            setState(() {});
-          });
+              .then((value) {});
         }));
     floatButton.add(null);
     floatButton.add(null);
@@ -113,46 +111,100 @@ class ListEmpleadosGeneral extends StatefulWidget {
 }
 
 class _ListEmpleadosGeneralState extends State<ListEmpleadosGeneral> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
   String nombreCompleto(PerfilModel empleado) {
     String result;
     result = '${empleado.empleadoNombre} ${empleado.empleadoApellido}';
     return result;
   }
 
+  String cadenaVisit(int number) {
+    try {
+      if (number == null || number == 0) {
+        return 'TRABAJADOR';
+      } else {
+        return 'VISITANTE';
+      }
+    } catch (e) {
+      return 'TRABAJADOR';
+    }
+  }
+
+  bool checkVisit(int number) {
+    try {
+      if (number == null || number == 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return true;
+    }
+  }
+
+  onChangeSelect(PerfilModel model, bool value) async {
+    bool value = checkVisit(model.idEmpresa);
+    int dato1 = model.idEmpresa;
+    try {
+      //TRABAJADOR
+      if (value) {
+        dato1 = 1;
+      }
+      //VISITANTE
+      else {
+        dato1 = 0; //CAMBIO A TRABAJADOR
+      }
+    } catch (e) {
+      dato1 = 0; //TRABAJADOR
+    }
+    await RepositoryServicesLocal.actualizarTipodeUsuario(
+        model.empleadoDni, dato1);
+    setState(() {
+      value = !value;
+      print(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: FutureBuilder(
-            future: RepositoryServicesLocal.selectAllEmployee(),
-            builder: (BuildContext context,
-                AsyncSnapshot<List<PerfilModel>> snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data != null) {
-                  return ListView.builder(
-                      itemCount: snapshot.data.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return ListTile(
-                          onTap: () => print(snapshot.data[index]),
-                          leading: Icon(
-                            Icons.person,
-                            size: 28,
-                          ),
-                          title: Text(nombreCompleto(snapshot.data[index])),
-                          subtitle: Text(snapshot.data[index].empleadoDni),
-                        );
-                      });
-                } else {
-                  return Text('NO HAY EMPLEADOS PARA ACTUALIZAR DATOS');
-                }
-              } else {
-                return Center(child: CircularProgressIndicator());
-              }
-            },
-          ),
-        ),
-      ],
+    return Container(
+      child: FutureBuilder(
+        future: RepositoryServicesLocal.selectAllEmployee(),
+        builder:
+            (BuildContext context, AsyncSnapshot<List<PerfilModel>> snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data != null) {
+              return ListView.builder(
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      onTap: () => print(snapshot.data[index].idEmpresa),
+                      leading: Switch(
+                        value: checkVisit(snapshot.data[index].idEmpresa),
+                        onChanged: (state) {
+                          setState(() {
+                            onChangeSelect(snapshot.data[index],state);
+                          });
+                        },
+                      ),
+                      title: Text(nombreCompleto(snapshot.data[index])),
+                      subtitle: Text(snapshot.data[index].empleadoDni),
+                      trailing:
+                          Text(cadenaVisit(snapshot.data[index].idEmpresa)),
+                    );
+                  });
+            } else {
+              return Text('NO HAY EMPLEADOS PARA ACTUALIZAR DATOS');
+            }
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
     );
   }
 }
@@ -214,6 +266,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   ////////LISTAS PARA SINCRONIZAR
   List<MarcationModel> listaMarcaciones;
   List<NotificationModel> listaNotificaciones;
+  List<PerfilModel> listaEmpleados;
   PerfilModel tokenAdmin;
 
   @override
@@ -231,12 +284,14 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     messageStateConnection = 'Estabilizando conexiones . . .';
     messageStateSincronic = 'Cargando registros . . .';
     tokenAdmin = PerfilModel();
+    listaEmpleados = List();
     listaMarcaciones = List();
     listaNotificaciones = List();
     state = false;
     final df = new DateFormat('dd-MM-yyyy');
     diaActual = df.format(DateTime.now());
     loadDataSincronization();
+    specialFilter();
     super.initState();
   }
 
@@ -256,6 +311,27 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
       imageStateConnection = 'assets/connectionError.png';
       _connectionStatus = false;
       messageStateConnection = 'No existe conexión';
+    }
+  }
+
+  specialFilter() async {
+    List<PerfilModel> tempList = List();
+    tempList = await RepositoryServicesLocal.sincroEmployee();
+    for (var temp in tempList) {
+      if (temp.idEmpresa != 1) {
+        temp.empleadoDni = temp.empleadoDni;
+        temp.empleadoEmail = ' ';
+        temp.empleadoContrasena = ' ';
+        temp.empleadoFoto = ' ';
+        temp.empleadoToken = ' ';
+        temp.empleadoTokencelular = ' ';
+        temp.usuarioDniJefe = ' ';
+        temp.tipoIdCargo = 0;
+        temp.idArea = 0;
+        temp.idTurno = 0;
+        listaEmpleados.add(temp);
+        print(temp.empleadoDni);
+      }
     }
   }
 
@@ -336,6 +412,13 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
           messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
         });
       }
+      for (var node in listaEmpleados) {
+        allservices.registrarEmpleado(node, tokenAdmin.empleadoToken);
+        cantidadData++;
+        setState(() {
+          messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
+        });
+      }
       alerta.alertaConImagen(context, 'Exitó!', 'La sincronización fue exitosa',
           'assets/cloudSuccess.png');
       setState(() {
@@ -357,7 +440,10 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         color: Colors.green,
         onPressed: () {
           sincronizarData(
-              context, listaMarcaciones.length + listaNotificaciones.length);
+              context,
+              listaMarcaciones.length +
+                  listaNotificaciones.length +
+                  listaEmpleados.length);
         },
         icon: Icon(Icons.cloud_upload),
         label: Text(

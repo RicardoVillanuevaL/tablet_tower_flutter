@@ -1,8 +1,6 @@
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/material.dart';
 import 'package:tablet_tower_flutter/adminEmployee.dart';
-import 'package:tablet_tower_flutter/profileInfo.dart';
-import 'package:tablet_tower_flutter/utils/notifications.dart' as util;
+import 'package:tablet_tower_flutter/dashBoard.dart';
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -30,7 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
       children: <TableRow>[
         TableRow(children: [
           itemTable(
-              width / 2, height / 2, 'assets/search.png', 'Hora almuerzo', 0),
+              width / 2, height / 2, 'assets/search.png', 'Marcaciones', 0),
           itemTable(width / 2, height / 2, 'assets/admin.png',
               'Administrar Personal', 1)
         ])
@@ -49,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
               height: height - 50,
               image: AssetImage(image),
             ),
-            Text(texto)
+            Text(texto,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
           ],
         ),
       ),
@@ -61,32 +59,14 @@ class _MyHomePageState extends State<MyHomePage> {
     //1 admin
     switch (fn) {
       case 0:
-        marcationType();
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => DashBoard()));
         break;
       case 1:
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => AdminEmpoyee()));
         break;
       default:
-    }
-  }
-
-  marcationType() async {
-    String futureString = '';
-    try {
-      futureString = await BarcodeScanner.scan();
-      if (futureString != null) {
-        if (futureString.trim().length == 8) {
-          String contenido = futureString;
-          print(contenido);
-          Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => ProfileInfo(contenido)));
-        } else {
-          util.mostraralerta(context, 'Alerta!', 'Ese QR no es valido');
-        }
-      }
-    } catch (e) {
-      futureString = e.toString();
     }
   }
 }

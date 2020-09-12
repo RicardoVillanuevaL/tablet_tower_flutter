@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:tablet_tower_flutter/database/database.dart';
 
-PerfilModel perfilModelFromJson(String str) => PerfilModel.fromJson(json.decode(str));
+PerfilModel perfilModelFromJson(String str) =>
+    PerfilModel.fromJson(json.decode(str));
 
 String perfilModelToJson(PerfilModel data) => json.encode(data.toJson());
 
@@ -69,6 +70,7 @@ class PerfilModel {
       );
 
   Map<String, dynamic> toJson() => {
+        "empleado_dni": empleadoDni,
         "empleado_nombre": empleadoNombre,
         "empleado_apellido": empleadoApellido,
         "empleado_telefono": empleadoTelefono,
@@ -106,7 +108,15 @@ class PerfilModel {
     this.tipoIdCargo = jsonLocal[DatabaseCreator.tipo_id_cargo];
     this.idTurno = jsonLocal[DatabaseCreator.id_turno];
     this.idArea = jsonLocal[DatabaseCreator.id_area];
-    this.idEmpresa = jsonLocal[DatabaseCreator.id_empresa];
+    try {
+      if (jsonLocal[DatabaseCreator.id_empresa] == null) {
+        this.idEmpresa = null;
+      } else {
+        this.idEmpresa = 1;
+      }
+    } catch (e) {
+      this.idEmpresa = null;
+    }
     this.horaInicio = jsonLocal[DatabaseCreator.hora_inicio];
     this.horaFin = jsonLocal[DatabaseCreator.hora_fin];
   }

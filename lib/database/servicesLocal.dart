@@ -25,9 +25,37 @@ class RepositoryServicesLocal {
     return result;
   }
 
+  static Future<void> actualizarTipodeUsuario(
+      String dni, int value) async {
+    try {
+      final query = '''UPDATE ${DatabaseCreator.tableEmpleado}
+      SET ${DatabaseCreator.id_empresa} =?
+      WHERE ${DatabaseCreator.empleado_dni} = ?''';
+      List<String> params = [value.toString(), dni];
+      final result = await db.rawUpdate(query,params);
+      DatabaseCreator.databaseLog(
+          'actualizar tipo empleado', query, null, result, params);
+    } catch (e) {
+      print('ERROR'+e);
+    }
+  }
+
   static Future<List<PerfilModel>> updatesEmployee() async {
     final query = '''SELECT * FROM ${DatabaseCreator.tableEmpleado} 
         WHERE ${DatabaseCreator.empleado_dni} = ${DatabaseCreator.empleado_nombre}''';
+    final data = await db.rawQuery(query);
+
+    List<PerfilModel> listEmployee = List();
+    for (final nodo in data) {
+      final temp = PerfilModel.fromJsonLocal(nodo);
+      listEmployee.add(temp);
+    }
+    return listEmployee;
+  }
+
+  static Future<List<PerfilModel>> sincroEmployee() async {
+    final query = '''SELECT * FROM ${DatabaseCreator.tableEmpleado} 
+        WHERE ${DatabaseCreator.empleado_dni} <> ${DatabaseCreator.empleado_nombre}''';
     final data = await db.rawQuery(query);
 
     List<PerfilModel> listEmployee = List();
@@ -101,15 +129,17 @@ class RepositoryServicesLocal {
       ${DatabaseCreator.empleado_apellido},
       ${DatabaseCreator.empleado_telefono},
       ${DatabaseCreator.hora_inicio},
-      ${DatabaseCreator.hora_fin}
-      ) VALUES (?,?,?,?,?,?)''';
+      ${DatabaseCreator.hora_fin},
+      ${DatabaseCreator.id_empresa}
+      ) VALUES (?,?,?,?,?,?,?)''';
     List<dynamic> params = [
       model.empleadoDni,
       model.empleadoNombre,
       model.empleadoApellido,
       model.empleadoTelefono,
       model.horaInicio,
-      model.horaFin
+      model.horaFin,
+      model.idEmpresa
     ];
     try {
       final result = await db.rawInsert(query, params);
@@ -119,7 +149,7 @@ class RepositoryServicesLocal {
     }
   }
 
-  static Future<List<MarcationModel>> listarMarcaciones() async{
+  static Future<List<MarcationModel>> listarMarcaciones() async {
     final query = '''SELECT * FROM ${DatabaseCreator.tableMarcado}''';
     final data = await db.rawQuery(query);
 
@@ -130,7 +160,8 @@ class RepositoryServicesLocal {
     }
     return listMarcaciones;
   }
-  static Future<List<NotificationModel>> listaNotificaciones()async{
+
+  static Future<List<NotificationModel>> listaNotificaciones() async {
     final query = '''SELECT * FROM ${DatabaseCreator.tableNotificacion}''';
     final data = await db.rawQuery(query);
 

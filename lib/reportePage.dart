@@ -149,6 +149,7 @@ class _ReportePageState extends State<ReportePage> {
           SizedBox(
             height: 10,
           ),
+          sendButton()
         ],
       ),
     );
@@ -199,7 +200,7 @@ class _ReportePageState extends State<ReportePage> {
                   sendEmail();
                 },
                 icon: Icon(
-                  Icons.mail_outline,
+                  Icons.send,
                   color: Colors.white,
                 ),
                 label: Text(
