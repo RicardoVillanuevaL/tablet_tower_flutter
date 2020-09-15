@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tablet_tower_flutter/adminEmployee.dart';
+import 'package:tablet_tower_flutter/adminDashBoard.dart';
 import 'package:tablet_tower_flutter/dashBoard.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -64,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
         break;
       case 1:
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => AdminEmpoyee()));
+            context, MaterialPageRoute(builder: (context) => AdminDashBoard()));
         break;
       default:
     }

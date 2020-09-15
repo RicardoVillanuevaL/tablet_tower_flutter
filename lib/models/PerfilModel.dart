@@ -108,16 +108,18 @@ class PerfilModel {
     this.tipoIdCargo = jsonLocal[DatabaseCreator.tipo_id_cargo];
     this.idTurno = jsonLocal[DatabaseCreator.id_turno];
     this.idArea = jsonLocal[DatabaseCreator.id_area];
-    try {
-      if (jsonLocal[DatabaseCreator.id_empresa] == null) {
-        this.idEmpresa = null;
-      } else {
-        this.idEmpresa = 1;
-      }
-    } catch (e) {
-      this.idEmpresa = null;
-    }
+    this.idEmpresa = convert(jsonLocal[DatabaseCreator.id_empresa]);
     this.horaInicio = jsonLocal[DatabaseCreator.hora_inicio];
     this.horaFin = jsonLocal[DatabaseCreator.hora_fin];
+  }
+
+  int convert(String data){
+    int result;
+    if(data==null){
+      result = 0;
+    }else{
+      result = int.parse(data);
+    }
+    return result;
   }
 }

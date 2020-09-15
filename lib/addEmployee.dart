@@ -33,7 +33,7 @@ class _AddEmployeeState extends State<AddEmployee> {
   }
 
   boxForm(String title, String edit, TextEditingController _controller,
-      TextInputType typeInput) {
+      TextInputType typeInput, int maxLenght) {
     return Container(
       margin: EdgeInsets.only(top: 10, bottom: 10),
       child: Row(
@@ -52,6 +52,7 @@ class _AddEmployeeState extends State<AddEmployee> {
             child: TextField(
               controller: _controller,
               keyboardType: typeInput,
+              maxLength: maxLenght,
             ),
           )
         ],
@@ -64,7 +65,6 @@ class _AddEmployeeState extends State<AddEmployee> {
         controllerNombre.text.trim().length > 0 &&
         controllerApellido.text.trim().length > 0 &&
         selectTipoUsuario != 0) {
-
       model.empleadoDni = controllerDNI.text;
       model.empleadoNombre = controllerNombre.text;
       model.empleadoApellido = controllerApellido.text;
@@ -73,6 +73,11 @@ class _AddEmployeeState extends State<AddEmployee> {
       model.horaFin = '23:00:00';
       if (selectTipoUsuario == 2) {
         model.idEmpresa = 1;
+      } else {
+        model.idEmpresa = 2;
+      }
+      if (model.empleadoTelefono == '' || model.empleadoTelefono == null) {
+        model.empleadoTelefono = '900000001';
       }
       RepositoryServicesLocal.addEmpleado(model);
       Navigator.of(context).pop();
@@ -126,13 +131,13 @@ class _AddEmployeeState extends State<AddEmployee> {
             children: [
               planelRadioButtom(),
               boxForm('DNI:', model.empleadoDni, controllerDNI,
-                  TextInputType.number),
+                  TextInputType.number, 8),
               boxForm('NOMBRE:', model.empleadoNombre, controllerNombre,
-                  TextInputType.name),
+                  TextInputType.name, null),
               boxForm('APELLIDO:', model.empleadoApellido, controllerApellido,
-                  TextInputType.name),
+                  TextInputType.name, null),
               boxForm('TELEFONO:', model.empleadoTelefono, controllerTelefono,
-                  TextInputType.number),
+                  TextInputType.number, 9),
               FloatingActionButton(
                 onPressed: () {
                   registrarEmpleado();

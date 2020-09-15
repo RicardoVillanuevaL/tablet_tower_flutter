@@ -25,19 +25,25 @@ class RepositoryServicesLocal {
     return result;
   }
 
-  static Future<void> actualizarTipodeUsuario(
-      String dni, int value) async {
+  static Future<bool> actualizarTipodeUsuario(
+      var dni, var value) async {
+        bool success;
     try {
       final query = '''UPDATE ${DatabaseCreator.tableEmpleado}
-      SET ${DatabaseCreator.id_empresa} =?
+      SET ${DatabaseCreator.id_empresa} = $value
       WHERE ${DatabaseCreator.empleado_dni} = ?''';
-      List<String> params = [value.toString(), dni];
+      // List<String> params = [value.toString(), dni];
+      List<String> params = [dni];
+      // final result = await db.rawUpdate(query);
       final result = await db.rawUpdate(query,params);
       DatabaseCreator.databaseLog(
-          'actualizar tipo empleado', query, null, result, params);
+          'actualizar tipo empleado', query, null, result,params);
+      success = true;
     } catch (e) {
       print('ERROR'+e);
+      success =false;
     }
+    return success;
   }
 
   static Future<List<PerfilModel>> updatesEmployee() async {

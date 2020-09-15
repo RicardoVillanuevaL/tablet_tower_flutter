@@ -89,8 +89,8 @@ class _ReportePageState extends State<ReportePage> {
       alerta.alertaConImagen(context, 'Envió Exitoso',
           'El mensaje se envió correctamente', 'assets/send.png');
     } else {
-      alerta.alertaConImagen(context, 'Oh no!',
-          'Error al enviar el mensaje', 'assets/sendError.png');
+      alerta.alertaConImagen(context, 'Oh no!', 'Error al enviar el mensaje',
+          'assets/sendError.png');
     }
   }
 
@@ -222,15 +222,18 @@ class _ReportePageState extends State<ReportePage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final screenHeight = screenSize.height;
-    return Container(
-      padding: EdgeInsets.all(20),
-      child: Table(
-        children: <TableRow>[
-          TableRow(children: [
-            widgetImageState(screenHeight),
-            widgetStates(),
-          ])
-        ],
+    return Scaffold(
+      appBar: AppBar(title: Text('Generar Reportes',textAlign: TextAlign.center,),),
+      body: Container(
+        padding: EdgeInsets.all(20),
+        child: Table(
+          children: <TableRow>[
+            TableRow(children: [
+              widgetImageState(screenHeight),
+              widgetStates(),
+            ])
+          ],
+        ),
       ),
     );
   }
