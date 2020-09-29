@@ -31,7 +31,7 @@ class _AdminDashBoardState extends State<AdminDashBoard> {
           itemTable(width / 2, height / 2, 'assets/list2.png',
               'Lista de Empleados', 0),
           itemTable(width / 2, height / 2, 'assets/attendance.png',
-              'Lista de Trabajadores', 1),
+              'Trabajadores por actualizar', 1),
         ]),
         TableRow(children: [
           itemTable(width / 2, height / 2, 'assets/uploadData.png',

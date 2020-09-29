@@ -20,6 +20,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
   String data;
   MarcationModel marcationModel = MarcationModel();
   NotificationModel notificationModel = NotificationModel();
+  String tiempoText = '';
+
   //////////////
   int state = 0;
   @override
@@ -27,6 +29,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     futureString = '';
     data = this.widget.data;
     super.initState();
+    geolocalizacion();
   }
 
   marcationType() async {
@@ -151,7 +154,6 @@ class _ProfileInfoState extends State<ProfileInfo> {
         state = 0;
       });
     });
-    print('REGISTRO');
   }
 
   imagen(String cadena) {
@@ -162,25 +164,46 @@ class _ProfileInfoState extends State<ProfileInfo> {
     }
   }
 
+  String tipoMensaje(String fn, PerfilModel model) {
+    String result;
+    switch (fn) {
+      case 'INGRESO':
+        marcationModel.marcadoTipo = 'Ingreso';
+        notificationModel.titulo = 'Ingreso a labor';
+        notificationModel.cuerpo =
+            '${model.empleadoNombre} ${model.empleadoApellido} marcó su ingreso desde la tablet';
+        result = 'Bienvenido, acabá de registrar su ingreso';
+        break;
+      case 'SALIDA':
+        marcationModel.marcadoTipo = 'Salida del trabajo';
+        notificationModel.titulo = 'Salida del trabajo';
+        notificationModel.cuerpo =
+            '${model.empleadoNombre} ${model.empleadoApellido} marcó su salida del trabajo desde la tablet';
+        result = 'Acabá de marcar su salida del trabajo, hasta luego';
+        break;
+      case 'REFRIGERIO':
+        marcationModel.marcadoTipo = 'Hora de almuerzo';
+        notificationModel.titulo = 'Hora de almuerzo';
+        notificationModel.cuerpo =
+            '${model.empleadoNombre} ${model.empleadoApellido} marcó su hora de almuerzo desde la tablet';
+        result = 'Bienvenido al comedor, tiene 40 min de estancia';
+        break;
+      case 'RETORNO':
+        marcationModel.marcadoTipo = 'Fin de refrigerio';
+        notificationModel.titulo = 'Fin de refrigerio';
+        notificationModel.cuerpo =
+            '${model.empleadoNombre} ${model.empleadoApellido} marcó su fin de refrigerio desde la tablet';
+        result = 'Acaba de marcar su fin de refrigerio, de regreso al trabajo';
+        break;
+      default:
+    }
+    return result;
+  }
+
   infoCard(PerfilModel model, BuildContext context) {
     Color color = Color(0xFF76F011);
-    String paseText = 'PASE CONCEDIDO';
-    String tiempoText = '';
-    String horaInicio = model.horaInicio;
-    String horaFin = model.horaFin;
-    int hInicio = int.parse(horaInicio.substring(0, 2));
-    int mInicio = int.parse(horaInicio.substring(3, 5));
-    int hFin = int.parse(horaFin.substring(0, 2));
-    int mFin = int.parse(horaFin.substring(3, 5));
     DateFormat formatActual = DateFormat('yyyy-MM-dd HH:mm');
     DateTime tiempoActual = DateTime.parse(formatActual.format(DateTime.now()));
-    int hActual = int.parse(tiempoActual.toString().substring(11, 13));
-    int mActual = int.parse(tiempoActual.toString().substring(14, 16));
-    int tTotalInicio = hInicio * 60 + mInicio;
-    int tTotalFin = hFin * 60 + mFin;
-    int tTotalActual = hActual * 60 + mActual;
-    int tiempoRest = tTotalFin - tTotalActual;
-    print(tiempoRest);
     ///////////--LLENADO DE MODELOS--/////////////
     model.empleadoDni = futureString;
     marcationModel.marcadoDni = futureString;
@@ -191,34 +214,10 @@ class _ProfileInfoState extends State<ProfileInfo> {
     marcationModel.marcadoTemperatura = 0.0;
     notificationModel.idTelefono = model.empleadoTelefono;
     notificationModel.fechahora = tiempoActual.toString();
-    geolocalizacion();
-    tiempoText = 'Bienvenido al comedor, que disfrute su refrigerio';
-    if ((tTotalActual > tTotalInicio || tTotalActual == tTotalInicio) &&
-        tTotalActual < tTotalFin) {
-      marcationModel.marcadoMotivo = 'Hora de almuerzo';
-      marcationModel.marcadoTipo = 'Refrigerio';
-      notificationModel.titulo = 'Refrigerio';
-      notificationModel.cuerpo =
-          '${model.empleadoNombre} ${model.empleadoApellido} marcó su hora de almuerzo';
-      // tiempoText = 'Su tiempo de estancia en el comedor es de $tiempoRest minutos';
-      services(context, marcationModel, notificationModel, model,
-          model.empleadoToken);
-    } else {
-      marcationModel.marcadoMotivo = 'Acceso denegado almuerzo';
-      marcationModel.marcadoTipo = 'Refrigerio fuera de hora';
-      notificationModel.titulo = 'Acceso denegado refrigerio';
-      notificationModel.cuerpo =
-          '${model.empleadoNombre} ${model.empleadoApellido} intento marcar su hora de almuerzo, se le denegó la entrada al comedor';
-
-      int tiempoJ = tTotalActual - tTotalFin;
-      color = Colors.red;
-      paseText = 'PASE DENEGADO';
-      tiempoJ = tiempoJ.abs();
-      // tiempoText =
-      //     'Ya han pasado $tiempoJ minutos, Para que ingrese al comedor';
-      services(context, marcationModel, notificationModel, model,
-          model.empleadoToken);
-    }
+    tiempoText = tipoMensaje(data, model);
+    marcationModel.marcadoMotivo = data;
+    services(
+        context, marcationModel, notificationModel, model, model.empleadoToken);
 
     final screenSize = MediaQuery.of(context).size;
     final screenHeight = screenSize.height / 1.2;
@@ -234,7 +233,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
           child: Column(
             children: [
               Text(
-                paseText,
+                'PASE CONCEDIDO',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 30,

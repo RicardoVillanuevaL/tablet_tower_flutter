@@ -45,6 +45,52 @@ alertaEspecialEnviarEmail(BuildContext context, String titulo, String mensaje,
       });
 }
 
+dialogConfirmacionToken(BuildContext context) {
+  return Dialog(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+    elevation: 2,
+    backgroundColor: Colors.transparent,
+    child: Stack(
+      children: [
+        Container(
+          width: 500,
+          padding: EdgeInsets.only(top: 100, bottom: 16, left: 16, right: 16),
+          margin: EdgeInsets.only(top: 16),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(17),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10.0,
+                  offset: Offset(0.0, 10.0),
+                )
+              ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[],
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 16,
+          right: 16,
+          child: CircleAvatar(
+            backgroundColor: Colors.blueAccent,
+            radius: 50,
+            child: Container(
+              child: Image.asset('assets/password.png'),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 alertaConImagen(
     BuildContext context, String titulo, String mensaje, String imagen) {
   return showDialog(

@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget with LandScapeModeMixin {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: 'home',
+      initialRoute: 'login',
       routes: {
         'home': (_) => MyHomePage(),
         'login': (_)=> LoginPage()

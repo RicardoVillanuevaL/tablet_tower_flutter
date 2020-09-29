@@ -71,7 +71,7 @@ class _DashBoardState extends State<DashBoard> {
         break;
       case 2:
         Navigator.push(context,
-            MaterialPageRoute(builder: (context) => ProfileInfo('REFIRGERIO')));
+            MaterialPageRoute(builder: (context) => ProfileInfo('REFRIGERIO')));
         break;
       case 3:
         Navigator.push(context,

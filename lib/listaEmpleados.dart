@@ -21,19 +21,19 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
   }
 
   String cadenaVisit(int number) {
-      if (number == 2) {
-        return 'TRABAJADOR';
-      } else {
-        return 'VISITANTE';
-      }
+    if (number == 2) {
+      return 'TRABAJADOR';
+    } else {
+      return 'VISITANTE';
+    }
   }
 
   bool checkVisit(int number) {
-      if (number == 2) {
-        return false;
-      } else {
-        return true;
-      }
+    if (number == 2) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   @override
@@ -76,7 +76,8 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
                 showDialog(
                     context: context,
                     child: CustomDialog(
-                      nombre: nombreCompleto(listPersonal[index]),
+                      nombre: listPersonal[index].empleadoNombre,
+                      apellido: listPersonal[index].empleadoApellido,
                       dni: listPersonal[index].empleadoDni,
                       tipo: checkVisit(listPersonal[index].idEmpresa),
                     )).then((value) => {
@@ -126,9 +127,9 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
 
 //POP UP DIALOG BOX BELOW
 class CustomDialog extends StatefulWidget {
-  final String nombre, dni;
+  final String nombre, apellido, dni;
   final bool tipo;
-  CustomDialog({this.nombre, this.dni, this.tipo});
+  CustomDialog({this.nombre, this.apellido, this.dni, this.tipo});
 
   @override
   _CustomDialogState createState() => _CustomDialogState();
@@ -158,101 +159,80 @@ class _CustomDialogState extends State<CustomDialog> {
         child: dialogContent(context));
   }
 
-  listWidget() {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          Text(texto,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          SizedBox(height: 10.0),
-          Text(dni,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          SizedBox(height: 10.0),
-          Switch(
-              value: tipo,
-              onChanged: (checked) {
-                setState(() {
-                  tipo = checked;
-                });
-              })
-        ],
-      ),
-    );
-  }
-
   dialogContent(BuildContext context) {
     return SingleChildScrollView(
       child: Stack(
         children: <Widget>[
           Container(
             width: 500,
-              padding:
-                  EdgeInsets.only(top: 100, bottom: 16, left: 16, right: 16),
-              margin: EdgeInsets.only(top: 16),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(17),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 10.0,
-                      offset: Offset(0.0, 10.0),
-                    )
-                  ]),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    'Información de $texto',
-                    style: TextStyle(
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 10.0),
-                  Text(dni,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 20.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Tipo de usuario: '),
-                      Switch(
-                          value: tipo,
-                          onChanged: (checked) {
-                            setState(() {
-                              tipo = checked;
-                            });
-                          }),
-                    ],
-                  ),
-                  SizedBox(height: 24.0),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: FlatButton(
-                      textColor: Colors.blue,
-                      onPressed: () async {
-                        actualizarData();
-                        Navigator.of(context).pop(tipo);
-                      },
-                      child: Text('Aceptar'),
-                    ),
+            padding: EdgeInsets.only(top: 100, bottom: 16, left: 16, right: 16),
+            margin: EdgeInsets.only(top: 16),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(17),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10.0,
+                    offset: Offset(0.0, 10.0),
                   )
-                ],
-              )),
-          Positioned(
-              top: 0,
-              left: 16,
-              right: 16,
-              child: CircleAvatar(
-                backgroundColor: Colors.blueAccent,
-                radius: 50,
-                child: Container(
-                  child: Image.asset('assets/attendance.png'),
+                ]),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  'Información de $texto',
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ))
+                SizedBox(height: 10.0),
+                Text(dni,
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                SizedBox(height: 20.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Tipo de usuario: '),
+                    Switch(
+                        value: tipo,
+                        onChanged: (checked) {
+                          setState(() {
+                            tipo = checked;
+                          });
+                        }),
+                  ],
+                ),
+                SizedBox(height: 24.0),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: FlatButton(
+                    textColor: Colors.blue,
+                    onPressed: () async {
+                      actualizarData();
+                      Navigator.of(context).pop(tipo);
+                    },
+                    child: Text('Aceptar'),
+                  ),
+                )
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 16,
+            right: 16,
+            child: CircleAvatar(
+              backgroundColor: Colors.blueAccent,
+              radius: 50,
+              child: Container(
+                child: Image.asset('assets/attendance.png'),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -268,7 +248,8 @@ class _CustomDialogState extends State<CustomDialog> {
 
   actualizarData() async {
     int value = conversor(tipo);
-    bool resutl = await RepositoryServicesLocal.actualizarTipodeUsuario(dni, value);
+    bool resutl =
+        await RepositoryServicesLocal.actualizarTipodeUsuario(dni, value);
     print('$resutl $dni $tipo $value');
   }
 }
