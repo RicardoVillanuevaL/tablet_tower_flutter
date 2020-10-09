@@ -30,7 +30,7 @@ class AllServices {
     return listModel[0];
   }
 
-  Future<MarcationModel> registrarMarcacion(
+  Future<bool> registrarMarcacion(
       MarcationModel marcation, String token) async {
     final urlTemp =
         'https://asistenciasendnotification.herokuapp.com/registro/registroMarcado';
@@ -39,10 +39,14 @@ class AllServices {
         headers: {"Content-Type": "application/json", "Authorization": token});
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
-    return marcation;
+      if (response.statusCode==201) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  Future<NotificationModel> registrarNotification(
+  Future<bool> registrarNotification(
       NotificationModel model, String token) async {
     final urlTemp =
         'https://asistenciasendnotification.herokuapp.com/registro/registroNotificacion';
@@ -51,10 +55,14 @@ class AllServices {
         headers: {"Content-Type": "application/json", "authorization": token});
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
-    return model;
+      if (response.statusCode==201) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  Future<PerfilModel> registrarEmpleado(PerfilModel model, String token) async {
+  Future<bool> registrarEmpleado(PerfilModel model, String token) async {
     final urlTemp =
         'https://asistenciasendnotification.herokuapp.com/registro/registroTrabajador';
     final response = await http.post(urlTemp,
@@ -62,7 +70,11 @@ class AllServices {
         headers: {"Content-Type": "application/json", "authorization": token});
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
-    return model;
+    if (response.statusCode==201) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   Future<dynamic> sendEmail(String nameMessage, String emailMessage,

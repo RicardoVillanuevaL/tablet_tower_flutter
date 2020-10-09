@@ -1,12 +1,14 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
+import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/InnerJoinModel.dart';
-import 'package:tablet_tower_flutter/services/all_services.dart';
 import 'package:tablet_tower_flutter/utils/notifications.dart' as alerta;
 
 class ReportePage extends StatefulWidget {
@@ -21,11 +23,10 @@ class _ReportePageState extends State<ReportePage> {
   List<ReporteModel> listaData;
   String diaActual;
   File file;
-  TextEditingController _controller;
+  String pathG;
 
   @override
   void initState() {
-    _controller = TextEditingController();
     listaData = List();
     state = false;
     send = false;
@@ -72,25 +73,13 @@ class _ReportePageState extends State<ReportePage> {
       alerta.alertaConImagen(
           context, 'Exito!', 'Ya se creó el reporte', 'assets/xls.png');
       setState(() {
+        pathG = path;
         send = true;
       });
     } catch (e) {
       alerta.mostraralerta(
           context, 'Alerta!', 'Error al generar o descargar el reporte');
       print(e);
-    }
-  }
-
-  sendEmail() async {
-    final response = await allservices.sendEmail2('Reporte de la Tablet',
-        _controller.text, 'Este es el reporte generado $diaActual', file);
-
-    if (response == 1) {
-      alerta.alertaConImagen(context, 'Envió Exitoso',
-          'El mensaje se envió correctamente', 'assets/send.png');
-    } else {
-      alerta.alertaConImagen(context, 'Oh no!', 'Error al enviar el mensaje',
-          'assets/sendError.png');
     }
   }
 
@@ -145,85 +134,66 @@ class _ReportePageState extends State<ReportePage> {
           SizedBox(
             height: 10,
           ),
-          button(),
+          if (state)
+            OutlineButton.icon(
+              color: Colors.green,
+              onPressed: () {
+                exportarData(context);
+              },
+              icon: Icon(Icons.file_download),
+              label: Text(
+                'Descargar',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
           SizedBox(
             height: 10,
           ),
-          sendButton()
+          if (send)
+            RaisedButton.icon(
+              color: Colors.blue,
+              onPressed: () {
+                _shareCSV();
+              },
+              icon: Icon(
+                Icons.send,
+                color: Colors.white,
+              ),
+              label: Text(
+                'Enviar',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  button() {
-    if (state) {
-      return OutlineButton.icon(
-        color: Colors.green,
-        onPressed: () {
-          exportarData(context);
-        },
-        icon: Icon(Icons.file_download),
-        label: Text(
-          'Descargar',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18),
-        ),
-      );
-    } else {
-      return Container();
+  Future<void> _shareCSV() async {
+    try {
+      Uint8List listByte = file.readAsBytesSync();
+      final ByteData bytes = ByteData.view(listByte.buffer);
+      await Share.file(
+          'Reporte', 'Reporte.csv', bytes.buffer.asUint8List(), 'text/csv');
+    } catch (e) {
+      print('error: $e');
     }
   }
 
-  sendButton() {
-    if (send) {
-      return Card(
-        color: Colors.white70,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        margin: EdgeInsets.only(left: 10, right: 10),
-        child: Padding(
-          padding:
-              const EdgeInsets.only(top: 8, bottom: 8, left: 30, right: 30),
-          child: Column(
-            children: [
-              TextField(
-                controller: _controller,
-                maxLines: 1,
-                decoration: InputDecoration(
-                    hintText: 'E-mail', icon: Icon(Icons.mail_outline)),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              RaisedButton.icon(
-                color: Colors.blue,
-                onPressed: () {
-                  sendEmail();
-                },
-                icon: Icon(
-                  Icons.send,
-                  color: Colors.white,
-                ),
-                label: Text(
-                  'Enviar',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } else {
-      return Container();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final screenHeight = screenSize.height;
     return Scaffold(
-      appBar: AppBar(title: Text('Generar Reportes',textAlign: TextAlign.center,),),
+      appBar: AppBar(
+        title: Text(
+          'Generar Reportes',
+          textAlign: TextAlign.center,
+        ),
+      ),
       body: Container(
         padding: EdgeInsets.all(20),
         child: Table(

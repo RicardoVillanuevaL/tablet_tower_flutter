@@ -157,26 +157,42 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         ]);
   }
 
-  sincronizarData(BuildContext context, int cantidad) {
+  sincronizarData(BuildContext context, int cantidad) async {
     int cantidadData = 0;
+    int cantidadFalse = 0;
     try {
       for (var node in listaMarcaciones) {
-        allservices.registrarMarcacion(node, tokenAdmin.empleadoToken);
-        cantidadData++;
+        bool temp = await allservices.registrarMarcacion(
+            node, tokenAdmin.empleadoToken);
+        if (temp) {
+          cantidadData++;
+        } else {
+          cantidadFalse++;
+        }
         setState(() {
           messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
         });
       }
       for (var node in listaNotificaciones) {
-        allservices.registrarNotification(node, tokenAdmin.empleadoToken);
-        cantidadData++;
+        bool temp = await allservices.registrarNotification(
+            node, tokenAdmin.empleadoToken);
+        if (temp) {
+          cantidadData++;
+        } else {
+          cantidadFalse++;
+        }
         setState(() {
           messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
         });
       }
       for (var node in listaEmpleados) {
-        allservices.registrarEmpleado(node, tokenAdmin.empleadoToken);
-        cantidadData++;
+        bool temp =
+            await allservices.registrarEmpleado(node, tokenAdmin.empleadoToken);
+        if (temp) {
+          cantidadData++;
+        } else {
+          cantidadFalse++;
+        }
         setState(() {
           messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
         });
@@ -188,12 +204,13 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
       });
     } catch (e) {
       alerta.alertaConImagen(
-          context, 'Oh no!', 'Ocurrio un error', 'assets/cloudError.png');
+          context, 'Oh no!', 'Ocurrio un error, $cantidadFalse no subidos', 'assets/cloudError.png');
       print(e);
       setState(() {
         imageStateSincronic = 'assets/cloudError.png';
       });
     }
+    print(cantidadFalse);
   }
 
   button() {
@@ -248,7 +265,10 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     final screenHeight = screenSize.height;
     return Scaffold(
         appBar: AppBar(
-          title: Text('Sincronización',textAlign: TextAlign.center,),
+          title: Text(
+            'Sincronización',
+            textAlign: TextAlign.center,
+          ),
         ),
         body: Container(
           padding: EdgeInsets.all(20),

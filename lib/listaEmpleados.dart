@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tablet_tower_flutter/addEmployee.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
+import 'package:tablet_tower_flutter/utils/notifications.dart' as util;
 
 class ListadoEmpleados extends StatefulWidget {
   ListadoEmpleados({Key key}) : super(key: key);
@@ -12,6 +13,7 @@ class ListadoEmpleados extends StatefulWidget {
 
 class _ListadoEmpleadosState extends State<ListadoEmpleados> {
   List<PerfilModel> listPersonal;
+  List<PerfilModel> listaCorregir;
   int state;
 
   String nombreCompleto(PerfilModel empleado) {
@@ -45,6 +47,7 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
 
   leerData() async {
     listPersonal = await RepositoryServicesLocal.selectAllEmployee();
+    listaCorregir = await RepositoryServicesLocal.updatesEmployee();
     if (listPersonal != null) {
       setState(() {
         state = 1;
@@ -60,6 +63,26 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
     state = 0;
     listPersonal = null;
     leerData();
+  }
+
+  bool marca(String dni) {
+    bool result;
+    try {
+      if (listaCorregir.length != 0) {
+        for (var i = 0; i < listaCorregir.length; i++) {
+          if (listaCorregir[i].empleadoDni == dni) {
+            result = true;
+          } else {
+            result = false;
+          }
+        }
+      } else {
+        result = false;
+      }
+    } catch (e) {
+      result = false;
+    }
+    return result;
   }
 
   builListEmpleados() {
@@ -80,6 +103,7 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
                       apellido: listPersonal[index].empleadoApellido,
                       dni: listPersonal[index].empleadoDni,
                       tipo: checkVisit(listPersonal[index].idEmpresa),
+                      telefono: listPersonal[index].empleadoTelefono,
                     )).then((value) => {
                       setState(() {
                         restardList();
@@ -87,7 +111,14 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
                     });
               },
               child: ListTile(
-                leading: Icon(Icons.person),
+                leading: Icon(
+                  marca(listPersonal[index].empleadoDni)
+                      ? Icons.cancel
+                      : Icons.check_circle,
+                  color: marca(listPersonal[index].empleadoDni)
+                      ? Colors.red
+                      : Colors.green,
+                ),
                 title: Text(nombreCompleto(listPersonal[index])),
                 subtitle: Text(listPersonal[index].empleadoDni),
                 trailing: Text(cadenaVisit(listPersonal[index].idEmpresa)),
@@ -112,10 +143,23 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
             Icons.add,
             size: 35,
           ),
-          onPressed: () {
+          onPressed: () async {
             Navigator.of(context)
                 .push(MaterialPageRoute(builder: (context) => AddEmployee()))
-                .then((value) {
+                .then((value) async {
+              print(value);
+              if (value) {
+                util.alertWaitDialog(
+                    context,
+                    'Exito!',
+                    'El usuario se actualizó correctamente',
+                    'assets/connectionSuccess.png');
+                await Future.delayed(Duration(seconds: 2));
+                Navigator.pop(context);
+              } else {
+                util.alertaRegistroMarcacion(
+                    context, 'Oh no', 'Algo falló, intentelo más tarde');
+              }
               setState(() {
                 restardList();
               });
@@ -127,9 +171,10 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
 
 //POP UP DIALOG BOX BELOW
 class CustomDialog extends StatefulWidget {
-  final String nombre, apellido, dni;
+  final String nombre, apellido, dni, telefono;
   final bool tipo;
-  CustomDialog({this.nombre, this.apellido, this.dni, this.tipo});
+  CustomDialog(
+      {this.nombre, this.apellido, this.dni, this.tipo, this.telefono});
 
   @override
   _CustomDialogState createState() => _CustomDialogState();
@@ -139,12 +184,16 @@ class _CustomDialogState extends State<CustomDialog> {
   String texto;
   String dni;
   bool tipo;
+  String nombre, apellido, telefono = '';
 
   @override
   void initState() {
     texto = this.widget.nombre;
     dni = this.widget.dni;
     tipo = this.widget.tipo;
+    nombre = this.widget.nombre;
+    apellido = this.widget.apellido;
+    telefono = this.widget.telefono;
     super.initState();
   }
 
@@ -178,47 +227,95 @@ class _CustomDialogState extends State<CustomDialog> {
                     offset: Offset(0.0, 10.0),
                   )
                 ]),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Información de $texto',
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.w700,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    'Información de $texto',
+                    style: TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                SizedBox(height: 10.0),
-                Text(dni,
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                SizedBox(height: 20.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Tipo de usuario: '),
-                    Switch(
-                        value: tipo,
-                        onChanged: (checked) {
-                          setState(() {
-                            tipo = checked;
-                          });
-                        }),
-                  ],
-                ),
-                SizedBox(height: 24.0),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: FlatButton(
-                    textColor: Colors.blue,
-                    onPressed: () async {
-                      actualizarData();
-                      Navigator.of(context).pop(tipo);
-                    },
-                    child: Text('Aceptar'),
+                  SizedBox(height: 10.0),
+                  Text(dni,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 20.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Tipo de usuario: '),
+                      Switch(
+                          value: tipo,
+                          onChanged: (checked) {
+                            setState(() {
+                              tipo = checked;
+                            });
+                          }),
+                    ],
                   ),
-                )
-              ],
+                  SizedBox(height: 10.0),
+                  TextField(
+                    controller: new TextEditingController()
+                      ..text = '${this.widget.nombre}',
+                    keyboardType: TextInputType.name,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 24),
+                    onChanged: (value) => nombre = value,
+                    decoration: InputDecoration(
+                        labelText: 'Nombre',
+                        labelStyle: TextStyle(fontSize: 22)),
+                  ),
+                  SizedBox(height: 10.0),
+                  TextField(
+                    controller: new TextEditingController()
+                      ..text = '${this.widget.apellido}',
+                    style: TextStyle(fontSize: 24),
+                    keyboardType: TextInputType.name,
+                    maxLines: 1,
+                    onChanged: (value) => apellido = value,
+                    decoration: InputDecoration(
+                        labelText: 'Apellido',
+                        labelStyle: TextStyle(fontSize: 22)),
+                  ),
+                  SizedBox(height: 10.0),
+                  TextField(
+                    controller: new TextEditingController()
+                      ..text = '${this.widget.telefono}',
+                    style: TextStyle(fontSize: 24),
+                    keyboardType: TextInputType.phone,
+                    maxLines: 1,
+                    onChanged: (value) => telefono = value,
+                    decoration: InputDecoration(
+                        labelText: 'Telefono',
+                        labelStyle: TextStyle(fontSize: 22)),
+                  ),
+                  SizedBox(height: 24.0),
+                  SizedBox(height: 5.0),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: FlatButton(
+                      textColor: Colors.blue,
+                      onPressed: () async {
+                        if (nombre.trim().isNotEmpty &&
+                            apellido.trim().isNotEmpty) {
+                          PerfilModel model = PerfilModel(
+                              empleadoNombre: nombre,
+                              empleadoApellido: apellido,
+                              empleadoDni: dni,
+                              empleadoTelefono:
+                                  telefono.isEmpty ? '99999' : telefono);
+                          bool result = await actualizarData(model);
+                          Navigator.of(context).pop(result);
+                        } 
+                      },
+                      child: Text('Aceptar'),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
           Positioned(
@@ -246,10 +343,15 @@ class _CustomDialogState extends State<CustomDialog> {
     }
   }
 
-  actualizarData() async {
+  Future<bool> actualizarData(PerfilModel model) async {
     int value = conversor(tipo);
     bool resutl =
         await RepositoryServicesLocal.actualizarTipodeUsuario(dni, value);
-    print('$resutl $dni $tipo $value');
+    bool result2 = await RepositoryServicesLocal.actualizarData(model);
+    if (resutl && result2) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

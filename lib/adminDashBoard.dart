@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tablet_tower_flutter/listSpecialEmployee.dart';
 import 'package:tablet_tower_flutter/listaEmpleados.dart';
 import 'package:tablet_tower_flutter/reportePage.dart';
 import 'package:tablet_tower_flutter/sincronizacionPage.dart';
@@ -29,11 +28,7 @@ class _AdminDashBoardState extends State<AdminDashBoard> {
       children: <TableRow>[
         TableRow(children: [
           itemTable(width / 2, height / 2, 'assets/list2.png',
-              'Lista de Empleados', 0),
-          itemTable(width / 2, height / 2, 'assets/attendance.png',
-              'Trabajadores por actualizar', 1),
-        ]),
-        TableRow(children: [
+              'Administrar Trabajadores', 0),
           itemTable(width / 2, height / 2, 'assets/uploadData.png',
               'Sincronización', 2),
           itemTable(width / 2, height / 2, 'assets/report.png',
@@ -74,10 +69,6 @@ class _AdminDashBoardState extends State<AdminDashBoard> {
       case 0:
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => ListadoEmpleados()));
-        break;
-      case 1:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => ListSpecialEmployee()));
         break;
       case 2:
         Navigator.push(context,
