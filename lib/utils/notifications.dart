@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:tablet_tower_flutter/adminDashBoard.dart';
 
 mostraralerta(BuildContext context, String header, String mensaje) {
   return showDialog(
@@ -45,50 +46,39 @@ alertaEspecialEnviarEmail(BuildContext context, String titulo, String mensaje,
       });
 }
 
-dialogConfirmacionToken(BuildContext context) {
-  return Dialog(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
-    elevation: 2,
-    backgroundColor: Colors.transparent,
-    child: Stack(
-      children: [
-        Container(
-          width: 500,
-          padding: EdgeInsets.only(top: 100, bottom: 16, left: 16, right: 16),
-          margin: EdgeInsets.only(top: 16),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(17),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10.0,
-                  offset: Offset(0.0, 10.0),
-                )
-              ]),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[],
+alertaToken(BuildContext context) {
+  TextEditingController controller = TextEditingController();
+  return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: Text('Seguridad'),
+          content: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Image(
+                  image: AssetImage('assets/password.png'),
+                  height: 50,
+                ),
+              ),
+              TextFormField(controller: controller,)
+            ],
           ),
-        ),
-        Positioned(
-          top: 0,
-          left: 16,
-          right: 16,
-          child: CircleAvatar(
-            backgroundColor: Colors.blueAccent,
-            radius: 50,
-            child: Container(
-              child: Image.asset('assets/password.png'),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () =>  Navigator.push(
+            context, MaterialPageRoute(builder: (context) => AdminDashBoard())),
+              child: Text('Ok'),
             ),
-          ),
-        ),
-      ],
-    ),
-  );
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      });
 }
 
 alertaConImagen(
@@ -148,6 +138,7 @@ alertWaitDialog(
     BuildContext context, String title, String mensaje, String image) {
   return showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return CupertinoAlertDialog(
           title: Text(title),
@@ -163,7 +154,7 @@ alertWaitDialog(
           ),
         );
       });
-  // en el codigo donde lo llamas le agregas 
+  // en el codigo donde lo llamas le agregas
   // await Future.delayed(Duration(seconds: 3));
   // Navigator.pop(context);
 }

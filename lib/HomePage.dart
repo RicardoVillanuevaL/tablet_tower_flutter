@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tablet_tower_flutter/adminDashBoard.dart';
 import 'package:tablet_tower_flutter/dashBoard.dart';
+import 'package:tablet_tower_flutter/utils/notifications.dart' as util;
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -47,7 +49,10 @@ class _MyHomePageState extends State<MyHomePage> {
               height: height - 50,
               image: AssetImage(image),
             ),
-            Text(texto,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
+            Text(
+              texto,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            )
           ],
         ),
       ),
@@ -63,10 +68,129 @@ class _MyHomePageState extends State<MyHomePage> {
             context, MaterialPageRoute(builder: (context) => DashBoard()));
         break;
       case 1:
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => AdminDashBoard()));
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            child: DialogSecurity());
         break;
       default:
     }
+  }
+}
+
+class DialogSecurity extends StatefulWidget {
+  DialogSecurity({Key key}) : super(key: key);
+
+  @override
+  _DialogSecurityState createState() => _DialogSecurityState();
+}
+
+class _DialogSecurityState extends State<DialogSecurity> {
+  int stateView;
+  List<String> listImagenes = [
+    'assets/password.png', // 0 normal
+    'assets/userError.png', //1 error
+    'assets/userCheck.png' // 2 exito!
+  ];
+  @override
+  void initState() {
+    stateView = 0;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 2,
+        backgroundColor: Colors.transparent,
+        child: dialogContent(context));
+  }
+
+  Future<bool> verificationToken(String token) async {
+    bool result;
+    result = true;
+    return result;
+  }
+
+  dialogContent(BuildContext context) {
+    TextEditingController _controller = TextEditingController();
+    return SingleChildScrollView(
+      child: Stack(
+        children: [
+          Container(
+            width: 300,
+            decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(17),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10.0,
+                    offset: Offset(0.0, 10.0),
+                  )
+                ]),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Image(
+                      image: AssetImage(listImagenes[stateView]),
+                      height: 100,
+                    ),
+                  ),
+                  Container(
+                    width: 200,
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      controller: _controller,
+                      obscureText: true,
+                      maxLength: 1,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                          labelText: 'Contraseña',
+                          prefixIcon: Icon(Icons.lock_outline)),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      FlatButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('CANCEL',
+                              style: TextStyle(color: Colors.red))),
+                      FlatButton(
+                          onPressed: () async {
+                            bool result =
+                                await verificationToken(_controller.text);
+                            if (result) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AdminDashBoard()));
+                            } else {
+                              setState(() {
+                                stateView = 1;
+                              });
+                            }
+                          },
+                          child: Text(
+                            'OK',
+                            style: TextStyle(color: Colors.blueAccent),
+                          )),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
