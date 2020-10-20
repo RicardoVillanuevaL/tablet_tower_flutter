@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tablet_tower_flutter/adminDashBoard.dart';
 import 'package:tablet_tower_flutter/dashBoard.dart';
-import 'package:tablet_tower_flutter/utils/notifications.dart' as util;
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -84,6 +84,10 @@ class DialogSecurity extends StatefulWidget {
   @override
   _DialogSecurityState createState() => _DialogSecurityState();
 }
+// 1.ARMAR EL SERVICIO DE BAJADA
+// 2.RELLENAR CORRECTAMENTE LA BD LOCAL
+// 3.ARREGLAR LOS MODELOS DE LA BASE DE DATOS Y ESTADO DE LOS LISTADOS
+// 4.TERMINAR LA SEGURIDAD
 
 class _DialogSecurityState extends State<DialogSecurity> {
   int stateView;
@@ -111,7 +115,13 @@ class _DialogSecurityState extends State<DialogSecurity> {
 
   Future<bool> verificationToken(String token) async {
     bool result;
-    result = true;
+    final preferences = await SharedPreferences.getInstance();
+    String tokenPref = preferences.get('dni') ?? null;
+    if (token == tokenPref) {
+      result = true;
+    } else {
+      result = false;
+    }
     return result;
   }
 
@@ -150,7 +160,7 @@ class _DialogSecurityState extends State<DialogSecurity> {
                     child: TextFormField(
                       controller: _controller,
                       obscureText: true,
-                      maxLength: 1,
+                      maxLines: 1,
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
                           labelText: 'Contraseña',
@@ -174,9 +184,7 @@ class _DialogSecurityState extends State<DialogSecurity> {
                                   MaterialPageRoute(
                                       builder: (context) => AdminDashBoard()));
                             } else {
-                              setState(() {
-                                stateView = 1;
-                              });
+                              Navigator.of(context).pop();
                             }
                           },
                           child: Text(

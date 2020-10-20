@@ -206,6 +206,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     DateTime tiempoActual = DateTime.parse(formatActual.format(DateTime.now()));
     ///////////--LLENADO DE MODELOS--/////////////
     model.empleadoDni = futureString;
+    model.idEmpresa = 0;
     marcationModel.marcadoDni = futureString;
     marcationModel.marcadoFechaHora = tiempoActual.toString();
     marcationModel.marcadoDataQr = data;

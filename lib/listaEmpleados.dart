@@ -23,7 +23,7 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
   }
 
   String cadenaVisit(int number) {
-    if (number == 2) {
+    if (number == 1) {
       return 'TRABAJADOR';
     } else {
       return 'VISITANTE';
@@ -31,7 +31,7 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
   }
 
   bool checkVisit(int number) {
-    if (number == 2) {
+    if (number == 0) {
       return false;
     } else {
       return true;
@@ -110,18 +110,21 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
                       })
                     });
               },
-              child: ListTile(
-                leading: Icon(
-                  marca(listPersonal[index].empleadoDni)
-                      ? Icons.cancel
-                      : Icons.check_circle,
-                  color: marca(listPersonal[index].empleadoDni)
-                      ? Colors.red
-                      : Colors.green,
+              child: Card(
+                elevation: 3,
+                child: ListTile(
+                  leading: Icon(
+                    marca(listPersonal[index].empleadoDni)
+                        ? Icons.cancel
+                        : Icons.check_circle,
+                    color: marca(listPersonal[index].empleadoDni)
+                        ? Colors.red
+                        : Colors.green,
+                  ),
+                  title: Text(nombreCompleto(listPersonal[index])),
+                  subtitle: Text(listPersonal[index].empleadoDni),
+                  trailing: Text(cadenaVisit(listPersonal[index].idEmpresa)),
                 ),
-                title: Text(nombreCompleto(listPersonal[index])),
-                subtitle: Text(listPersonal[index].empleadoDni),
-                trailing: Text(cadenaVisit(listPersonal[index].idEmpresa)),
               ));
         },
       );
@@ -309,7 +312,7 @@ class _CustomDialogState extends State<CustomDialog> {
                                   telefono.isEmpty ? '99999' : telefono);
                           bool result = await actualizarData(model);
                           Navigator.of(context).pop(result);
-                        } 
+                        }
                       },
                       child: Text('Aceptar'),
                     ),

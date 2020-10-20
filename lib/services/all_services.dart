@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:tablet_tower_flutter/models/EmpleadosDescarga.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
 import 'package:tablet_tower_flutter/models/NotificacionModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
@@ -30,16 +31,32 @@ class AllServices {
     return listModel[0];
   }
 
+  Future<List<DownloadEmployee>> descargarEmpleados() async {
+    final response = await http.get(
+        'https://asistenciasendnotification.herokuapp.com/consulta/descargaEmpleados');
+    final List<dynamic> decodedData = json.decode(response.body);
+    final List<DownloadEmployee> listEmpleados = new List();
+    if (decodedData == null || decodedData == []) {
+      return [];
+    } else {
+      decodedData.forEach((element) { 
+        final temp = DownloadEmployee.fromJson(element);
+        listEmpleados.add(temp);
+      });
+      return listEmpleados;
+    }
+  }
+
   Future<bool> registrarMarcacion(
-      MarcationModel marcation, String token) async {
+      MarcationModel marcation) async {
     final urlTemp =
         'https://asistenciasendnotification.herokuapp.com/registro/registroMarcado';
     final response = await http.post(urlTemp,
         body: marcationModelToJson(marcation),
-        headers: {"Content-Type": "application/json", "Authorization": token});
+        headers: {"Content-Type": "application/json"});
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
-      if (response.statusCode==201) {
+    if (response.statusCode == 201) {
       return true;
     } else {
       return false;
@@ -55,22 +72,22 @@ class AllServices {
         headers: {"Content-Type": "application/json", "authorization": token});
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
-      if (response.statusCode==201) {
+    if (response.statusCode == 201) {
       return true;
     } else {
       return false;
     }
   }
 
-  Future<bool> registrarEmpleado(PerfilModel model, String token) async {
+  Future<bool> registrarEmpleado(PerfilModel model) async {
     final urlTemp =
         'https://asistenciasendnotification.herokuapp.com/registro/registroTrabajador';
     final response = await http.post(urlTemp,
         body: perfilModelToJson(model),
-        headers: {"Content-Type": "application/json", "authorization": token});
+        headers: {"Content-Type": "application/json"});
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
-    if (response.statusCode==201) {
+    if (response.statusCode == 201) {
       return true;
     } else {
       return false;
@@ -116,10 +133,9 @@ class AllServices {
     request.fields['name'] = nameMessage;
     request.fields['email'] = emailMessage;
     request.fields['message'] = bodyMessage;
-    request.files.add(await http.MultipartFile.fromPath(
-        'Reporte Tablet', file.path));
-    request.headers
-        .addAll({'Content-Type': 'application/json'});
+    request.files
+        .add(await http.MultipartFile.fromPath('Reporte Tablet', file.path));
+    request.headers.addAll({'Content-Type': 'application/json'});
 
     var response = await request.send();
     print(response.reasonPhrase);

@@ -4,8 +4,8 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
+import 'package:tablet_tower_flutter/models/EmpleadosDescarga.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
-import 'package:tablet_tower_flutter/models/NotificacionModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
 import 'package:tablet_tower_flutter/services/all_services.dart';
 import 'package:tablet_tower_flutter/utils/notifications.dart' as alerta;
@@ -27,9 +27,14 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   String diaActual;
   ////////LISTAS PARA SINCRONIZAR
   List<MarcationModel> listaMarcaciones;
-  List<NotificationModel> listaNotificaciones;
   List<PerfilModel> listaEmpleados;
-  PerfilModel tokenAdmin;
+  var listDescargaIcons = [
+    Icons.cloud_download,
+    Icons.restore_page,
+    Icons.check,
+    Icons.error_outline
+  ];
+  int stadoDescarga;
 
   @override
   void initState() {
@@ -41,14 +46,13 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         setStatus(result);
       });
     });
+    stadoDescarga = 0;
     imageStateConnection = 'assets/loader.png';
     imageStateSincronic = 'assets/cloudLoad.png';
     messageStateConnection = 'Estabilizando conexiones . . .';
     messageStateSincronic = 'Cargando registros . . .';
-    tokenAdmin = PerfilModel();
     listaEmpleados = List();
     listaMarcaciones = List();
-    listaNotificaciones = List();
     state = false;
     final df = new DateFormat('dd-MM-yyyy');
     diaActual = df.format(DateTime.now());
@@ -80,7 +84,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     List<PerfilModel> tempList = List();
     tempList = await RepositoryServicesLocal.sincroEmployee();
     for (var temp in tempList) {
-      if (temp.idEmpresa != 1) {
+      if (temp.idEmpresa == 1) {
         temp.empleadoDni = temp.empleadoDni;
         temp.empleadoEmail = ' ';
         temp.empleadoContrasena = ' ';
@@ -99,10 +103,8 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
 
   loadDataSincronization() async {
     try {
-      tokenAdmin = await allservices.encuentraTrabajador('77154956');
       listaMarcaciones = await RepositoryServicesLocal.listarMarcaciones();
-      listaNotificaciones = await RepositoryServicesLocal.listaNotificaciones();
-      if (listaMarcaciones.length > 0 && listaNotificaciones.length > 0) {
+      if (listaMarcaciones.length > 0) {
         setState(() {
           imageStateSincronic = 'assets/cloud_server.png';
           messageStateSincronic = 'Registros cargados para sincronizar';
@@ -117,7 +119,6 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
       imageStateSincronic = 'assets/cloudError.png';
       messageStateSincronic = 'Oh no!, Error al cargar los registros';
     }
-    print(tokenAdmin.empleadoToken);
   }
 
   widgetInfo(double height) {
@@ -162,20 +163,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     int cantidadFalse = 0;
     try {
       for (var node in listaMarcaciones) {
-        bool temp = await allservices.registrarMarcacion(
-            node, tokenAdmin.empleadoToken);
-        if (temp) {
-          cantidadData++;
-        } else {
-          cantidadFalse++;
-        }
-        setState(() {
-          messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
-        });
-      }
-      for (var node in listaNotificaciones) {
-        bool temp = await allservices.registrarNotification(
-            node, tokenAdmin.empleadoToken);
+        bool temp = await allservices.registrarMarcacion(node);
         if (temp) {
           cantidadData++;
         } else {
@@ -186,8 +174,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         });
       }
       for (var node in listaEmpleados) {
-        bool temp =
-            await allservices.registrarEmpleado(node, tokenAdmin.empleadoToken);
+        bool temp = await allservices.registrarEmpleado(node);
         if (temp) {
           cantidadData++;
         } else {
@@ -204,7 +191,10 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
       });
     } catch (e) {
       alerta.alertaConImagen(
-          context, 'Oh no!', 'Ocurrio un error, $cantidadFalse no subidos', 'assets/cloudError.png');
+          context,
+          'Oh no!',
+          'Ocurrio un error, $cantidadFalse no subidos',
+          'assets/cloudError.png');
       print(e);
       setState(() {
         imageStateSincronic = 'assets/cloudError.png';
@@ -219,10 +209,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         color: Colors.green,
         onPressed: () {
           sincronizarData(
-              context,
-              listaMarcaciones.length +
-                  listaNotificaciones.length +
-                  listaEmpleados.length);
+              context, listaMarcaciones.length + listaEmpleados.length);
         },
         icon: Icon(Icons.cloud_upload),
         label: Text(
@@ -259,6 +246,35 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     );
   }
 
+  descargarEmpleados() async {
+    setState(() {
+      stadoDescarga = 1;
+    });
+    try {
+      List<DownloadEmployee> listaEmpleados = await allservices.descargarEmpleados();
+      for (var i = 0; i < listaEmpleados.length; i++) {
+        PerfilModel temp = PerfilModel();
+        temp.empleadoDni = listaEmpleados[i].empleadoDni;
+        temp.empleadoNombre = listaEmpleados[i].empleadoNombre;
+        temp.empleadoApellido = listaEmpleados[i].empleadoApellido;
+        temp.empleadoTelefono = listaEmpleados[i].empleadoTelefono;
+        if (listaEmpleados[i].idEmpresa != null) {
+          temp.idEmpresa = 1;
+        } else {
+          temp.idEmpresa = 0;
+        }
+        RepositoryServicesLocal.addEmpleado(temp);
+      }
+      setState(() {
+        stadoDescarga = 2;
+      });
+    } catch (e) {
+      setState(() {
+        stadoDescarga = 3;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -269,6 +285,11 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
             'Sincronización',
             textAlign: TextAlign.center,
           ),
+          actions: [
+            IconButton(
+                icon: Icon(listDescargaIcons[stadoDescarga]),
+                onPressed: () => descargarEmpleados())
+          ],
         ),
         body: Container(
           padding: EdgeInsets.all(20),

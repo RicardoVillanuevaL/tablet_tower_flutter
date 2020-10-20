@@ -16,11 +16,19 @@ class _AdminDashBoardState extends State<AdminDashBoard> {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width - 30.0;
     final screenHeight = screenSize.height - 30.0;
-    return Scaffold(
-      body: Center(
-        child: tableDashBoard(screenWidth, screenHeight),
+    return WillPopScope(
+      onWillPop: onBackPressed,
+      child: Scaffold(
+        body: Center(
+          child: tableDashBoard(screenWidth, screenHeight),
+        ),
       ),
     );
+  }
+
+  Future<bool> onBackPressed() {
+    Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+    return null;
   }
 
   tableDashBoard(double width, double height) {
