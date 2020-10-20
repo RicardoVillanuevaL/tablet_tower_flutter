@@ -209,7 +209,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         color: Colors.green,
         onPressed: () {
           sincronizarData(
-              context, listaMarcaciones.length + listaEmpleados.length);
+              context, listaMarcaciones.length);
         },
         icon: Icon(Icons.cloud_upload),
         label: Text(
