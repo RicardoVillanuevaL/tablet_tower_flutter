@@ -25,9 +25,8 @@ class RepositoryServicesLocal {
     return result;
   }
 
-  static Future<bool> actualizarTipodeUsuario(
-      var dni, var value) async {
-        bool success;
+  static Future<bool> actualizarTipodeUsuario(var dni, var value) async {
+    bool success;
     try {
       final query = '''UPDATE ${DatabaseCreator.tableEmpleado}
       SET ${DatabaseCreator.id_empresa} = $value
@@ -35,13 +34,13 @@ class RepositoryServicesLocal {
       // List<String> params = [value.toString(), dni];
       List<String> params = [dni];
       // final result = await db.rawUpdate(query);
-      final result = await db.rawUpdate(query,params);
+      final result = await db.rawUpdate(query, params);
       DatabaseCreator.databaseLog(
-          'actualizar tipo empleado', query, null, result,params);
+          'actualizar tipo empleado', query, null, result, params);
       success = true;
     } catch (e) {
-      print('ERROR'+e);
-      success =false;
+      print('ERROR' + e);
+      success = false;
     }
     return success;
   }
@@ -100,6 +99,39 @@ class RepositoryServicesLocal {
     }
     print(listaReporte);
     return listaReporte;
+  }
+
+  static Future<bool> generarIndicadorEmpleado() async {
+    bool success;
+    try {
+      final sql = '''UPDATE ${DatabaseCreator.tableEmpleado} 
+      SET ${DatabaseCreator.id_turno} = 1''';
+      final result = await db.rawUpdate(sql);
+      DatabaseCreator.databaseLog(
+          'indicador creado empleado', sql, null, result);
+      success = true;
+    } catch (e) {
+      print(e);
+      success = false;
+    }
+    return success;
+  }
+
+  static Future<bool> generarIndicadorMarcado() async {
+    bool success;
+    try {
+      final sql = '''UPDATE ${DatabaseCreator.tableMarcado} 
+      SET ${DatabaseCreator.marcado_dataQR} = ?''';
+      List<dynamic> params = ['REGISTRO SUBIDO EXITOSO'];
+      final result = await db.rawUpdate(sql, params);
+      DatabaseCreator.databaseLog(
+          'indicador creado MARCADO', sql, null, result, params);
+      success = true;
+    } catch (e) {
+      print(e);
+      success = false;
+    }
+    return success;
   }
 
   static Future<bool> actualizarData(PerfilModel model) async {
@@ -164,6 +196,7 @@ class RepositoryServicesLocal {
       final temp = MarcationModel.fromJsonLocal(nodo);
       listMarcaciones.add(temp);
     }
+    print(listMarcaciones.length);
     return listMarcaciones;
   }
 

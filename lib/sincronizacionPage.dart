@@ -4,6 +4,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
+import 'package:tablet_tower_flutter/listaEmpleados.dart';
 import 'package:tablet_tower_flutter/models/EmpleadosDescarga.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
@@ -83,28 +84,60 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   specialFilter() async {
     List<PerfilModel> tempList = List();
     tempList = await RepositoryServicesLocal.sincroEmployee();
+    print('todos ${tempList.length}');
     for (var temp in tempList) {
-      if (temp.idEmpresa == 1) {
-        temp.empleadoDni = temp.empleadoDni;
-        temp.empleadoEmail = ' ';
-        temp.empleadoContrasena = ' ';
-        temp.empleadoFoto = ' ';
-        temp.empleadoToken = ' ';
-        temp.empleadoTokencelular = ' ';
-        temp.usuarioDniJefe = ' ';
-        temp.tipoIdCargo = 0;
-        temp.idArea = 0;
-        temp.idTurno = 0;
-        listaEmpleados.add(temp);
-        print(temp.empleadoDni);
+      print('${temp.empleadoDni} ${temp.idTurno}');
+      if (temp.idTurno == null) {
+        if (temp.idEmpresa == 1) {
+          temp.empleadoDni = temp.empleadoDni;
+          temp.empleadoEmail = ' ';
+          temp.empleadoContrasena = ' ';
+          temp.empleadoFoto = ' ';
+          temp.empleadoToken = ' ';
+          temp.empleadoTokencelular = ' ';
+          temp.usuarioDniJefe = ' ';
+          temp.tipoIdCargo = 0;
+          temp.idArea = 0;
+          temp.idTurno = 0;
+          listaEmpleados.add(temp);
+        } else {
+          print('${temp.idEmpresa}');
+        }
+      } else {
+        print('${temp.idTurno}');
       }
     }
+    print('BEFORE ${listaEmpleados.length}');
+  }
+
+  generarIndicadorRegistro() async {
+    bool result1 = await RepositoryServicesLocal.generarIndicadorEmpleado();
+    bool result2 = await RepositoryServicesLocal.generarIndicadorMarcado();
+    if (result1 && result2) {
+      print('EXITO PERROO');
+    } else {
+      print('SIGUE INTENTANDO PAPI :(');
+    }
+  }
+
+  filtroMarcado() {
+    List<MarcationModel> tempList = List();
+    print('LISTA DE MARCACIONES A UN INICIO ${listaMarcaciones.length}');
+    for (var nodo in listaMarcaciones) {
+      if (nodo.marcadoDataQr.length < 12) {
+        tempList.add(nodo);
+      }
+    }
+    listaMarcaciones.clear();
+    listaMarcaciones = tempList;
+    print('LISTA DE MARCACIONES AL FINAL ${listaMarcaciones.length}');
   }
 
   loadDataSincronization() async {
     try {
       listaMarcaciones = await RepositoryServicesLocal.listarMarcaciones();
       if (listaMarcaciones.length > 0) {
+        filtroMarcado();
         setState(() {
           imageStateSincronic = 'assets/cloud_server.png';
           messageStateSincronic = 'Registros cargados para sincronizar';
@@ -161,46 +194,51 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   sincronizarData(BuildContext context, int cantidad) async {
     int cantidadData = 0;
     int cantidadFalse = 0;
-    try {
-      for (var node in listaMarcaciones) {
-        bool temp = await allservices.registrarMarcacion(node);
-        if (temp) {
-          cantidadData++;
-        } else {
-          cantidadFalse++;
+    if (listaMarcaciones.length != 0 || listaEmpleados.length != 0) {
+      try {
+        for (var node in listaMarcaciones) {
+          bool temp = await allservices.registrarMarcacion(node);
+          if (temp) {
+            cantidadData++;
+          } else {
+            cantidadFalse++;
+          }
+          setState(() {
+            messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
+          });
         }
+        for (var node in listaEmpleados) {
+          bool temp = await allservices.registrarEmpleado(node);
+          if (temp) {
+            cantidadData++;
+          } else {
+            cantidadFalse++;
+          }
+          setState(() {
+            messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
+          });
+        }
+        alerta.alertaConImagen(context, 'Exitó!',
+            'La sincronización fue exitosa', 'assets/cloudSuccess.png');
+        generarIndicadorRegistro();
         setState(() {
-          messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
+          imageStateSincronic = 'assets/cloudSuccess.png';
+        });
+      } catch (e) {
+        alerta.alertaConImagen(
+            context,
+            'Oh no!',
+            'Ocurrio un error, $cantidadFalse no subidos',
+            'assets/cloudError.png');
+        print(e);
+        setState(() {
+          imageStateSincronic = 'assets/cloudError.png';
         });
       }
-      for (var node in listaEmpleados) {
-        bool temp = await allservices.registrarEmpleado(node);
-        if (temp) {
-          cantidadData++;
-        } else {
-          cantidadFalse++;
-        }
-        setState(() {
-          messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
-        });
-      }
-      alerta.alertaConImagen(context, 'Exitó!', 'La sincronización fue exitosa',
-          'assets/cloudSuccess.png');
-      setState(() {
-        imageStateSincronic = 'assets/cloudSuccess.png';
-      });
-    } catch (e) {
-      alerta.alertaConImagen(
-          context,
-          'Oh no!',
-          'Ocurrio un error, $cantidadFalse no subidos',
-          'assets/cloudError.png');
-      print(e);
-      setState(() {
-        imageStateSincronic = 'assets/cloudError.png';
-      });
+    } else {
+      alerta.alertaConImagen(context,'Aviso!',
+            'Ya toda la data esta sincronizada', 'assets/cloudSuccess.png');
     }
-    print(cantidadFalse);
   }
 
   button() {
@@ -208,8 +246,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
       return OutlineButton.icon(
         color: Colors.green,
         onPressed: () {
-          sincronizarData(
-              context, listaMarcaciones.length);
+          sincronizarData(context, listaMarcaciones.length);
         },
         icon: Icon(Icons.cloud_upload),
         label: Text(
@@ -251,7 +288,8 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
       stadoDescarga = 1;
     });
     try {
-      List<DownloadEmployee> listaEmpleados = await allservices.descargarEmpleados();
+      List<DownloadEmployee> listaEmpleados =
+          await allservices.descargarEmpleados();
       for (var i = 0; i < listaEmpleados.length; i++) {
         PerfilModel temp = PerfilModel();
         temp.empleadoDni = listaEmpleados[i].empleadoDni;
