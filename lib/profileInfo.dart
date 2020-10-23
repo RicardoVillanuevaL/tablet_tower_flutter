@@ -69,14 +69,14 @@ class _ProfileInfoState extends State<ProfileInfo> {
                 if (snapshot.data != null) {
                   return infoCard(snapshot.data, context);
                 } else {
-                  return Container();
+                  return errorInfo('EL QR TIENE UN VALOR NULO');
                 }
               } else {
-                return Container();
+                return errorInfo('EL QR NO CONTIENE DATA');
               }
             });
       } else if (state == 2) {
-        return errorInfo();
+        return errorInfo('EL QR LEIDO TIENE MENOS O MAS DE 8 DIGITOS');
       } else if (state == 3) {
         return SingleChildScrollView(
           child: Column(
@@ -122,18 +122,56 @@ class _ProfileInfoState extends State<ProfileInfo> {
     );
   }
 
-  errorInfo() {
+  errorInfo(String error) {
+    Future.delayed(const Duration(seconds: 5), () {
+      setState(() {
+        state = 0;
+      });
+    });
     return Card(
         color: Colors.red,
-        child: Column(
-          children: [
-            Text(
-              'ERROR EN EL QR, TRABAJOR NO REGISTRADO',
-              textAlign: TextAlign.center,
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                  Text(
+                    'ERROR EN EL QR',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24),
+                  ),
+                ],
+              ),
+              Text(
+                error,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20),
+              ),
+              Text(
+                '*Nota el QR contiene esta data $futureString',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18),
+              ),
+            ],
+          ),
         ));
   }
 
