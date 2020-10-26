@@ -161,6 +161,17 @@ class _DialogSecurityState extends State<DialogSecurity> {
                       controller: _controller,
                       obscureText: true,
                       maxLines: 1,
+                      onEditingComplete: () async {
+                        bool result = await verificationToken(_controller.text);
+                        if (result) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AdminDashBoard()));
+                        } else {
+                          Navigator.of(context).pop();
+                        }
+                      },
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
                           labelText: 'Contraseña',

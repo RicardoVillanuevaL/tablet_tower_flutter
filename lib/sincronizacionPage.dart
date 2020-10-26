@@ -4,7 +4,6 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
-import 'package:tablet_tower_flutter/listaEmpleados.dart';
 import 'package:tablet_tower_flutter/models/EmpleadosDescarga.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';

@@ -98,10 +98,12 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
               onTap: () {
                 showDialog(
                     context: context,
+                    barrierDismissible: false,
                     child: CustomDialog(
                       nombre: listPersonal[index].empleadoNombre,
                       apellido: listPersonal[index].empleadoApellido,
                       dni: listPersonal[index].empleadoDni,
+                      ruta: true,
                       tipo: checkVisit(listPersonal[index].idEmpresa),
                       telefono: listPersonal[index].empleadoTelefono,
                     )).then((value) => {
@@ -137,7 +139,21 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Lista de Empleados')),
+        appBar: AppBar(
+          title: Text('Lista de Empleados'),
+          actions: [
+            IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  showSearch(
+                    context: context,
+                    delegate: EmpleadosSearch(),
+                  ).then((value) => setState(() {
+                        restardList();
+                      }));
+                })
+          ],
+        ),
         body: Center(
           child: builListEmpleados(),
         ),
@@ -172,12 +188,110 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
   }
 }
 
+class EmpleadosSearch extends SearchDelegate<PerfilModel> {
+  List<PerfilModel> list = List();
+
+  void cargarLista() async {
+    list = await RepositoryServicesLocal.selectAllEmployee();
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+          icon: Icon(Icons.clear),
+          onPressed: () {
+            query = "";
+          })
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+        icon: Icon(Icons.arrow_back),
+        onPressed: () {
+          close(context, null);
+        });
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return null;
+  }
+
+  bool checkVisit(int number) {
+    if (number == 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    cargarLista();
+    list = query.isEmpty
+        ? list
+        : list
+            .where((element) => element.empleadoDni.startsWith(query))
+            .toList();
+    return list.isEmpty
+        ? Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              'No hay resultados . . .\nRecuerde que la búsqueda es con el DNI',
+              style: TextStyle(fontSize: 20),
+            ),
+          )
+        : ListView.builder(
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              final PerfilModel model = list[index];
+              return ListTile(
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      child: CustomDialog(
+                        nombre: model.empleadoNombre,
+                        apellido: model.empleadoApellido,
+                        dni: model.empleadoDni,
+                        tipo: checkVisit(model.idEmpresa),
+                        telefono: model.empleadoTelefono,
+                        ruta: false,
+                      )).then((value) => cargarLista());
+                },
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${model.empleadoNombre} ${model.empleadoApellido}',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    Text(
+                      '${model.empleadoDni}',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    Divider()
+                  ],
+                ),
+              );
+            });
+  }
+}
+
 //POP UP DIALOG BOX BELOW
 class CustomDialog extends StatefulWidget {
   final String nombre, apellido, dni, telefono;
-  final bool tipo;
+  final bool tipo, ruta;
   CustomDialog(
-      {this.nombre, this.apellido, this.dni, this.tipo, this.telefono});
+      {this.nombre,
+      this.apellido,
+      this.dni,
+      this.tipo,
+      this.telefono,
+      this.ruta});
 
   @override
   _CustomDialogState createState() => _CustomDialogState();
@@ -186,7 +300,7 @@ class CustomDialog extends StatefulWidget {
 class _CustomDialogState extends State<CustomDialog> {
   String texto;
   String dni;
-  bool tipo;
+  bool tipo, ruta;
   String nombre, apellido, telefono = '';
 
   @override
@@ -197,18 +311,44 @@ class _CustomDialogState extends State<CustomDialog> {
     nombre = this.widget.nombre;
     apellido = this.widget.apellido;
     telefono = this.widget.telefono;
+    ruta = this.ruta;
     super.initState();
+  }
+
+  Future<bool> onBackPressed() {
+    if (ruta) {
+      // SI VIENE
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ListadoEmpleados()),
+      );
+    } else {
+      Navigator.pop(context);
+    }
+
+    return null;
+  }
+
+  String cadenaVisit(bool tipo) {
+    if (tipo) {
+      return 'TRABAJADOR';
+    } else {
+      return 'VISITANTE';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 2,
-        backgroundColor: Colors.transparent,
-        child: dialogContent(context));
+    return WillPopScope(
+      onWillPop: onBackPressed,
+      child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 2,
+          backgroundColor: Colors.transparent,
+          child: dialogContent(context)),
+    );
   }
 
   dialogContent(BuildContext context) {
@@ -257,6 +397,7 @@ class _CustomDialogState extends State<CustomDialog> {
                               tipo = checked;
                             });
                           }),
+                      Text('${cadenaVisit(tipo)}')
                     ],
                   ),
                   SizedBox(height: 10.0),
@@ -333,6 +474,17 @@ class _CustomDialogState extends State<CustomDialog> {
               ),
             ),
           ),
+          Positioned(
+              top: 10,
+              right: 0,
+              child: IconButton(
+                  icon: Icon(
+                    Icons.clear,
+                    size: 30,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  })),
         ],
       ),
     );
