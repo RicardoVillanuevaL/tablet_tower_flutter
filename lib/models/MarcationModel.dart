@@ -42,6 +42,7 @@ class MarcationModel {
         marcadoTipo: json["tipo"],
         marcadoMotivo: json["motivo"],
         marcadoTemperatura: json["temperatura"].toDouble(),
+        marcadoTiempo : json["tiempo"]
     );
 
     Map<String, dynamic> toJson() => {
@@ -54,6 +55,7 @@ class MarcationModel {
         "tipo": marcadoTipo,
         "motivo": marcadoMotivo,
         "temperatura": marcadoTemperatura,
+        "tiempo" : marcadoTiempo
     };
 
     MarcationModel.fromJsonLocal(Map<String,dynamic> jsonLocal){

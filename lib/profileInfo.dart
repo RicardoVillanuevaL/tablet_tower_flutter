@@ -34,7 +34,26 @@ class _ProfileInfoState extends State<ProfileInfo> {
 
   marcationType() async {
     try {
-      futureString = await BarcodeScanner.scan();
+      var resultBarCode = await BarcodeScanner.scan();
+      if (resultBarCode != null) {
+        setState(() {
+          state = 1;
+          futureString = resultBarCode;
+        });
+      } else {
+        setState(() {
+          state = 2;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        state = 3;
+      });
+    }
+  }
+
+  void cambioStado() {
+    try {
       if (futureString != null) {
         if (futureString.trim().length == 8) {
           setState(() {
@@ -46,6 +65,10 @@ class _ProfileInfoState extends State<ProfileInfo> {
             state = 2;
           });
         }
+      } else {
+        setState(() {
+          state = 3;
+        });
       }
     } catch (e) {
       print(e);
@@ -72,7 +95,9 @@ class _ProfileInfoState extends State<ProfileInfo> {
                   return errorInfo('EL QR TIENE UN VALOR NULO');
                 }
               } else {
-                return errorInfo('EL QR NO CONTIENE DATA');
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
               }
             });
       } else if (state == 2) {
@@ -117,8 +142,16 @@ class _ProfileInfoState extends State<ProfileInfo> {
       }
     }
 
+    Future<bool> _backPress() {
+      Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+      return null;
+    }
+
     return Scaffold(
-      body: Center(child: contentWidget()),
+      body: WillPopScope(
+        child: Center(child: contentWidget()),
+        onWillPop: () => _backPress(),
+      ),
     );
   }
 
@@ -170,6 +203,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                     fontWeight: FontWeight.bold,
                     fontSize: 18),
               ),
+              SizedBox(height: 20),
             ],
           ),
         ));
@@ -192,14 +226,6 @@ class _ProfileInfoState extends State<ProfileInfo> {
         state = 0;
       });
     });
-  }
-
-  imagen(String cadena) {
-    if (cadena == null) {
-      return Image.asset('assets/image_default.png');
-    } else {
-      return Image.network(cadena);
-    }
   }
 
   String tipoMensaje(String fn, PerfilModel model) {
@@ -242,6 +268,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     Color color = Color(0xFF76F011);
     DateFormat formatActual = DateFormat('yyyy-MM-dd HH:mm');
     DateTime tiempoActual = DateTime.parse(formatActual.format(DateTime.now()));
+    String temp = DateFormat.Hms().format(DateTime.now()).trim();
     ///////////--LLENADO DE MODELOS--/////////////
     model.empleadoDni = futureString;
     model.idEmpresa = 0;
@@ -249,7 +276,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
     marcationModel.marcadoFechaHora = tiempoActual.toString();
     marcationModel.marcadoDataQr = data;
     marcationModel.marcadoIdTelefono = model.empleadoTelefono;
-    marcationModel.marcadoTiempo = tiempoActual.toString();
+    marcationModel.marcadoTiempo = temp;
     marcationModel.marcadoTemperatura = 0.0;
     notificationModel.idTelefono = model.empleadoTelefono;
     notificationModel.fechahora = tiempoActual.toString();
@@ -285,7 +312,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                 height: screenHeight / 2,
                 child: FittedBox(
                   fit: BoxFit.fill,
-                  child: imagen(model.empleadoFoto),
+                  child: Image.asset('assets/image_default.png'),
                 ),
               ),
               Text(

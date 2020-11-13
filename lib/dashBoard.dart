@@ -23,12 +23,14 @@ class _DashBoardState extends State<DashBoard> {
     return Table(
       children: <TableRow>[
         TableRow(children: [
-          itemTable(width / 2, height / 2, 'assets/ingreso.png', 'Marcar ingresos', 0),
-          itemTable(width / 2, height / 2, 'assets/logout.png', 'Marcar Salidas', 1)
+          itemTable(width / 2, height / 2, 'assets/ingreso.png',
+              'Marcar ingresos', 0),
+          itemTable(
+              width / 2, height / 2, 'assets/logout.png', 'Marcar Salidas', 1)
         ]),
         TableRow(children: [
-          itemTable(
-              width / 2, height / 2, 'assets/rotura.png', 'Marcar Refrigerios', 2),
+          itemTable(width / 2, height / 2, 'assets/rotura.png',
+              'Marcar Refrigerios', 2),
           itemTable(width / 2, height / 2, 'assets/retorno edit.png',
               'Marcar fin de refrigerios', 3)
         ]),
@@ -40,7 +42,7 @@ class _DashBoardState extends State<DashBoard> {
     return InkWell(
       onTap: () => action(fn),
       child: Container(
-        padding: EdgeInsets.only(top: 10,bottom: 10),
+        padding: EdgeInsets.only(top: 10, bottom: 10),
         width: width,
         child: Column(
           children: [
@@ -48,7 +50,10 @@ class _DashBoardState extends State<DashBoard> {
               height: height - 50,
               image: AssetImage(image),
             ),
-            Text(texto,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
+            Text(
+              texto,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            )
           ],
         ),
       ),
