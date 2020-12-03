@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
@@ -154,40 +155,46 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   }
 
   widgetInfo(double height) {
-    return Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-              child: Text('Información de la tablet',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87))),
-          Flexible(
-              child: Text('Información de la conexión: $messageStateConnection',
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87))),
-          Flexible(
-              child: Text(
-                  'Información de la última sincronización: $messageStateSincronic',
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87))),
-          SizedBox(
-            height: 30,
-          ),
-          button(),
-          SizedBox(
-            height: 30,
-          ),
-        ]);
+    return Container(
+      height: height,
+      padding: EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+                child: Text('Información de la tablet',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87))),
+            SizedBox(height: 20),
+            Flexible(
+                child: Text(
+                    'Información de la conexión: $messageStateConnection',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87))),
+            Flexible(
+                child: Text(
+                    'Información de la última sincronización: $messageStateSincronic',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87))),
+            SizedBox(
+              height: 30,
+            ),
+            button(),
+            SizedBox(
+              height: 30,
+            ),
+          ]),
+    );
   }
 
   sincronizarData(BuildContext context, int cantidad) async {
@@ -235,8 +242,8 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         });
       }
     } else {
-      alerta.alertaConImagen(context,'Aviso!',
-            'Ya toda la data esta sincronizada', 'assets/cloudSuccess.png');
+      alerta.alertaConImagen(context, 'Aviso!',
+          'Ya toda la data esta sincronizada', 'assets/cloudSuccess.png');
     }
   }
 
@@ -259,25 +266,28 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   }
 
   wigdetStates(double height) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image(
-            image: AssetImage(imageStateConnection),
-            fit: BoxFit.fill,
-            height: height / 4,
-          ), //IMAGEN DE ESTADO DE CONEXION
-          SizedBox(
-            height: 30,
-          ),
-          Image(
-            image: AssetImage(imageStateSincronic),
-            fit: BoxFit.fill,
-            height: height / 4,
-          )
-        ], //IMAGEN DE ESTADO DE SINCRONIZACION
+    return Container(
+      height: height,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image(
+              image: AssetImage(imageStateConnection),
+              fit: BoxFit.fill,
+              height: height / 4,
+            ), //IMAGEN DE ESTADO DE CONEXION
+            SizedBox(
+              height: 30,
+            ),
+            Image(
+              image: AssetImage(imageStateSincronic),
+              fit: BoxFit.fill,
+              height: height / 4,
+            )
+          ], //IMAGEN DE ESTADO DE SINCRONIZACION
+        ),
       ),
     );
   }
@@ -320,6 +330,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
         appBar: AppBar(
           title: Text(
             'Sincronización',
+            style: TextStyle(fontSize: 24),
             textAlign: TextAlign.center,
           ),
           actions: [

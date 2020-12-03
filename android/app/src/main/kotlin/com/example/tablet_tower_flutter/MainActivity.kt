@@ -1,4 +1,4 @@
-package com.example.tablet_tower_flutter
+package com.controlplus.tablet_asistencia_tower
 
 import io.flutter.embedding.android.FlutterActivity
 

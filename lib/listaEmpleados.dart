@@ -140,7 +140,8 @@ class _ListadoEmpleadosState extends State<ListadoEmpleados> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Lista de Empleados'),
+          title: Text('Lista de Empleados',
+              style: TextStyle(fontSize: 26, color: Colors.white)),
           actions: [
             IconButton(
                 icon: Icon(Icons.search),

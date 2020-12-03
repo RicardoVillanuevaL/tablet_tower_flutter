@@ -84,11 +84,14 @@ class _ReportePageState extends State<ReportePage> {
   }
 
   widgetImageState(double height) {
-    return Center(
-        child: Container(
-      child: Image(image: AssetImage(imageState)),
-      height: height / 2,
-    ));
+    return Container(
+      height: height,
+      alignment: Alignment.center,
+      child: Container(
+        child: Image(image: AssetImage(imageState)),
+        height: height / 2,
+      ),
+    );
   }
 
   loadData() async {
@@ -116,8 +119,9 @@ class _ReportePageState extends State<ReportePage> {
     }
   }
 
-  widgetStates() {
-    return Center(
+  widgetStates(double height) {
+    return Container(
+      height: height,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -126,7 +130,7 @@ class _ReportePageState extends State<ReportePage> {
             child: Text(
               messageState,
               style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.black26),
             ),
@@ -144,7 +148,7 @@ class _ReportePageState extends State<ReportePage> {
               label: Text(
                 'Descargar',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 20),
               ),
             ),
           SizedBox(
@@ -163,7 +167,7 @@ class _ReportePageState extends State<ReportePage> {
               label: Text(
                 'Enviar',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(fontSize: 20, color: Colors.white),
               ),
             ),
         ],
@@ -182,7 +186,6 @@ class _ReportePageState extends State<ReportePage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -192,6 +195,7 @@ class _ReportePageState extends State<ReportePage> {
         title: Text(
           'Generar Reportes',
           textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 26),
         ),
       ),
       body: Container(
@@ -200,7 +204,7 @@ class _ReportePageState extends State<ReportePage> {
           children: <TableRow>[
             TableRow(children: [
               widgetImageState(screenHeight),
-              widgetStates(),
+              widgetStates(screenHeight),
             ])
           ],
         ),
