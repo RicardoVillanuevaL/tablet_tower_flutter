@@ -134,6 +134,38 @@ class RepositoryServicesLocal {
     return success;
   }
 
+  static Future<bool> generarIndicadorMarcadoIndividual(
+      MarcationModel model) async {
+    bool success;
+    try {
+      final query = '''UPDATE ${DatabaseCreator.tableMarcado} 
+          SET ${DatabaseCreator.marcado_dataQR} = ? 
+          WHERE ${DatabaseCreator.marcado_id_telefono} = ?
+          AND ${DatabaseCreator.marcado_dni} = ?
+          AND ${DatabaseCreator.marcado_dataQR} = ?
+          AND ${DatabaseCreator.marcado_fecha_hora} = ?
+          AND ${DatabaseCreator.marcado_tipo} = ?
+          AND ${DatabaseCreator.marcado_tiempo} = ?''';
+      List<dynamic> params = [
+        'REGISTRO SUBIDO EXITOSO',
+        '${model.marcadoIdTelefono}',
+        '${model.marcadoDni}',
+        '${model.marcadoDataQr}',
+        '${model.marcadoFechaHora}',
+        '${model.marcadoTipo}',
+        '${model.marcadoTiempo}',
+      ];
+      final result = await db.rawUpdate(query, params);
+      DatabaseCreator.databaseLog(
+          'indicador creado MARCADO', query, null, result, params);
+      success = true;
+    } catch (e) {
+      print(e);
+      success = false;
+    }
+    return success;
+  }
+
   static Future<bool> actualizarData(PerfilModel model) async {
     bool success;
     try {

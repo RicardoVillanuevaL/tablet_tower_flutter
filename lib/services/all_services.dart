@@ -36,7 +36,7 @@ class AllServices {
     if (decodedData == null || decodedData == []) {
       return [];
     } else {
-      decodedData.forEach((element) { 
+      decodedData.forEach((element) {
         final temp = DownloadEmployee.fromJson(element);
         listEmpleados.add(temp);
       });
@@ -44,19 +44,21 @@ class AllServices {
     }
   }
 
-  Future<bool> registrarMarcacion(
-      MarcationModel marcation) async {
-        print(marcation.marcadoTiempo);
-    final urlTemp =
-        'https://asistenciasendnotification.herokuapp.com/registro/registroMarcadoSpecial';
-    final response = await http.post(urlTemp,
-        body: marcationModelToJson(marcation),
-        headers: {"Content-Type": "application/json"});
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-    if (response.statusCode == 201) {
-      return true;
-    } else {
+  Future<bool> registrarMarcacion(MarcationModel marcation) async {
+    try {
+      final urlTemp =
+          'https://asistenciasendnotification.herokuapp.com/registro/registroMarcadoSpecial';
+      final response = await http.post(urlTemp,
+          body: marcationModelToJson(marcation),
+          headers: {"Content-Type": "application/json"});
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
       return false;
     }
   }

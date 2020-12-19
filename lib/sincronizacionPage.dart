@@ -19,6 +19,7 @@ class SincronizacionPage extends StatefulWidget {
 class _SincronizacionPageState extends State<SincronizacionPage> {
   StreamSubscription<ConnectivityResult> subscription;
   bool _connectionStatus;
+  bool sincroCompleta;
   Connectivity connectivity;
   String imageStateConnection;
   String imageStateSincronic;
@@ -28,6 +29,7 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
   String diaActual;
   ////////LISTAS PARA SINCRONIZAR
   List<MarcationModel> listaMarcaciones;
+  List<MarcationModel> listaNoRegistrados;
   List<PerfilModel> listaEmpleados;
   var listDescargaIcons = [
     Icons.cloud_download,
@@ -54,7 +56,9 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     messageStateSincronic = 'Cargando registros . . .';
     listaEmpleados = List();
     listaMarcaciones = List();
+    listaNoRegistrados = List();
     state = false;
+    sincroCompleta = true;
     final df = new DateFormat('dd-MM-yyyy');
     diaActual = df.format(DateTime.now());
     loadDataSincronization();
@@ -158,96 +162,117 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     return Container(
       height: height,
       padding: EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Flexible(
-                child: Text('Información de la tablet',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87))),
-            SizedBox(height: 20),
-            Flexible(
-                child: Text(
-                    'Información de la conexión: $messageStateConnection',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87))),
-            Flexible(
-                child: Text(
-                    'Información de la última sincronización: $messageStateSincronic',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87))),
-            SizedBox(
-              height: 30,
-            ),
-            button(),
-            SizedBox(
-              height: 30,
-            ),
-          ]),
+      child: SingleChildScrollView(
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                  child: Text('Información de la tablet',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87))),
+              SizedBox(height: 20),
+              Flexible(
+                  child: Text(
+                      'Información de la conexión: $messageStateConnection',
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87))),
+              Flexible(
+                  child: Text(
+                      'Información de la última sincronización: $messageStateSincronic',
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87))),
+              SizedBox(height: 30),
+              button(),
+              SizedBox(
+                height: 30,
+              ),
+            ]),
+      ),
     );
   }
 
   sincronizarData(BuildContext context, int cantidad) async {
     int cantidadData = 0;
-    int cantidadFalse = 0;
-    if (listaMarcaciones.length != 0 || listaEmpleados.length != 0) {
-      try {
-        for (var node in listaMarcaciones) {
-          bool temp = await allservices.registrarMarcacion(node);
-          if (temp) {
-            cantidadData++;
-          } else {
-            cantidadFalse++;
-          }
-          setState(() {
-            messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
-          });
-        }
-        for (var node in listaEmpleados) {
-          bool temp = await allservices.registrarEmpleado(node);
-          if (temp) {
-            cantidadData++;
-          } else {
-            cantidadFalse++;
-          }
-          setState(() {
-            messageStateSincronic = 'Ya se subieron $cantidadData / $cantidad';
-          });
-        }
-        alerta.alertaConImagen(context, 'Exitó!',
-            'La sincronización fue exitosa', 'assets/cloudSuccess.png');
-        generarIndicadorRegistro();
-        setState(() {
-          imageStateSincronic = 'assets/cloudSuccess.png';
-        });
-      } catch (e) {
-        alerta.alertaConImagen(
-            context,
-            'Oh no!',
-            'Ocurrio un error, $cantidadFalse no subidos',
-            'assets/cloudError.png');
-        print(e);
-        setState(() {
-          imageStateSincronic = 'assets/cloudError.png';
-        });
-      }
+    if (!sincroCompleta) {
+      setState(() {
+        messageStateSincronic = 'Recuperando datos';
+      });
+      listaMarcaciones.clear();
+      loadDataSincronization();
+      specialFilter();
+      await Future.delayed(Duration(seconds: 3));
+      sincroCompleta = true;
+      sincronizarData(context, listaMarcaciones.length);
     } else {
-      alerta.alertaConImagen(context, 'Aviso!',
-          'Ya toda la data esta sincronizada', 'assets/cloudSuccess.png');
+      if (listaMarcaciones.length != 0 || listaEmpleados.length != 0) {
+        try {
+          for (var node in listaMarcaciones) {
+            bool temp = await allservices.registrarMarcacion(node);
+            if (temp) {
+              RepositoryServicesLocal.generarIndicadorMarcadoIndividual(node);
+              cantidadData++;
+              setState(() {
+                messageStateSincronic =
+                    'Ya se subieron $cantidadData / $cantidad';
+              });
+            } else {
+              sincroCompleta = false;
+              listaNoRegistrados.add(node);
+            }
+          }
+          for (var node in listaEmpleados) {
+            bool temp = await allservices.registrarEmpleado(node);
+            print(temp);
+          }
+
+          if (cantidadData == listaMarcaciones.length) {
+            alerta.alertaConImagen(context, 'Exitó!',
+                'La sincronización fue exitosa', 'assets/cloudSuccess.png');
+            sincroCompleta = true;
+            setState(() {
+              imageStateSincronic = 'assets/cloudSuccess.png';
+            });
+          } else {
+            sincroCompleta = false;
+            alerta.alertaConImagen(
+                context,
+                'Oh no!',
+                'Ocurrio un error, ${listaNoRegistrados.length} no subidos\nPor favor vuelva a ejecutar la sincronización',
+                'assets/cloudError.png');
+          }
+        } catch (e) {
+          sincroCompleta = false;
+          alerta.alertaConImagen(
+              context,
+              'Oh no!',
+              'Por favor vuelva a ejecutar la sincronización',
+              'assets/cloudError.png');
+          print(e);
+          setState(() {
+            imageStateSincronic = 'assets/cloudError.png';
+          });
+        }
+      } else {
+        setState(() {
+          messageStateSincronic = 'No hay registros por actualizar';
+        });
+        alerta.alertaConImagen(context, 'Aviso!',
+            'Ya toda la data esta sincronizada', 'assets/cloudSuccess.png');
+      }
     }
   }
 
-  button() {
+  Widget button() {
     if (state && _connectionStatus) {
       return OutlineButton.icon(
         color: Colors.green,
@@ -269,24 +294,26 @@ class _SincronizacionPageState extends State<SincronizacionPage> {
     return Container(
       height: height,
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image(
-              image: AssetImage(imageStateConnection),
-              fit: BoxFit.fill,
-              height: height / 4,
-            ), //IMAGEN DE ESTADO DE CONEXION
-            SizedBox(
-              height: 30,
-            ),
-            Image(
-              image: AssetImage(imageStateSincronic),
-              fit: BoxFit.fill,
-              height: height / 4,
-            )
-          ], //IMAGEN DE ESTADO DE SINCRONIZACION
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image(
+                image: AssetImage(imageStateConnection),
+                fit: BoxFit.fill,
+                height: height / 4,
+              ), //IMAGEN DE ESTADO DE CONEXION
+              SizedBox(
+                height: 30,
+              ),
+              Image(
+                image: AssetImage(imageStateSincronic),
+                fit: BoxFit.fill,
+                height: height / 4,
+              )
+            ], //IMAGEN DE ESTADO DE SINCRONIZACION
+          ),
         ),
       ),
     );

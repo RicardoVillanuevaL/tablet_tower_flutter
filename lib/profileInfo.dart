@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:majascan/majascan.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/MarcationModel.dart';
 import 'package:tablet_tower_flutter/models/NotificacionModel.dart';
@@ -32,6 +34,54 @@ class _ProfileInfoState extends State<ProfileInfo> {
     geolocalizacion();
   }
 
+  scanQR() async {
+    String qrResult = '';
+    try {
+      qrResult = await MajaScan.startScan(
+          title: "Tower & Tower S.A.",
+          titleColor: Colors.greenAccent[700],
+          qRCornerColor: Colors.green,
+          qRScannerColor: Colors.green);
+      print(qrResult);
+      if (qrResult.isNotEmpty) {
+        setState(() {
+          state = 1;
+          futureString = qrResult;
+        });
+      } else {
+        setState(() {
+          state = 2;
+          futureString =
+              "Presionó el botón Atrás antes de escanear cualquier cosa";
+        });
+      }
+    } on PlatformException catch (ex) {
+      if (ex.code == MajaScan.CameraAccessDenied) {
+        setState(() {
+          futureString = "Se denegó el permiso de la cámara";
+          state = 2;
+        });
+      } else {
+        setState(() {
+          state = 2;
+          futureString = "Error $ex";
+        });
+      }
+    } on FormatException {
+      setState(() {
+        state = 2;
+        print(state);
+        futureString =
+            "Presionó el botón Atrás antes de escanear cualquier cosa";
+      });
+    } catch (ex) {
+      setState(() {
+        state = 2;
+        futureString = "Error $ex";
+      });
+    }
+  }
+
   marcationType() async {
     try {
       var resultBarCode = await BarcodeScanner.scan();
@@ -52,37 +102,11 @@ class _ProfileInfoState extends State<ProfileInfo> {
     }
   }
 
-  void cambioStado() {
-    try {
-      if (futureString != null) {
-        if (futureString.trim().length == 8) {
-          setState(() {
-            state = 1;
-            futureString = futureString.trim();
-          });
-        } else {
-          setState(() {
-            state = 2;
-          });
-        }
-      } else {
-        setState(() {
-          state = 3;
-        });
-      }
-    } catch (e) {
-      print(e);
-      setState(() {
-        state = 3;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     contentWidget() {
       if (state == 0) {
-        marcationType();
+        scanQR();
       } else if (state == 1) {
         return FutureBuilder(
             future: RepositoryServicesLocal.consultarEmpleado(futureString),
@@ -149,7 +173,48 @@ class _ProfileInfoState extends State<ProfileInfo> {
 
     return Scaffold(
       body: WillPopScope(
-        child: Center(child: contentWidget()),
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'SE DETUVO EL LECTOR',
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  RaisedButton(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    color: Colors.green,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50)),
+                    child: Icon(
+                      Icons.replay,
+                      size: 50,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        state = 0;
+                      });
+                    },
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    '¿Desea abrirlo?',
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            Center(child: contentWidget())
+          ],
+        ),
         onWillPop: () => _backPress(),
       ),
     );
