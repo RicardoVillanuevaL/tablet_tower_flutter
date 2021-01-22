@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
-import 'package:tablet_tower_flutter/detailEmployee.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
+import 'package:tablet_tower_flutter/views/administracion/detailEmployee.dart';
 
 class ListSpecialEmployee extends StatefulWidget {
   @override

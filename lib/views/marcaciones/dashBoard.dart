@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tablet_tower_flutter/profileInfo.dart';
+import 'package:tablet_tower_flutter/views/marcaciones/profileInfo.dart';
 
 class DashBoard extends StatefulWidget {
   @override

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:tablet_tower_flutter/addEmployee.dart';
 import 'package:tablet_tower_flutter/database/servicesLocal.dart';
 import 'package:tablet_tower_flutter/models/PerfilModel.dart';
 import 'package:tablet_tower_flutter/utils/notifications.dart' as util;
+import 'package:tablet_tower_flutter/views/administracion/addEmployee.dart';
 
 class ListadoEmpleados extends StatefulWidget {
   ListadoEmpleados({Key key}) : super(key: key);

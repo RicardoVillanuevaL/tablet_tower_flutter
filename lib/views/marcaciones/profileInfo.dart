@@ -23,6 +23,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
   MarcationModel marcationModel = MarcationModel();
   NotificationModel notificationModel = NotificationModel();
   String tiempoText = '';
+  // SPEAK ASSITENT
 
   //////////////
   int state = 0;
@@ -33,6 +34,11 @@ class _ProfileInfoState extends State<ProfileInfo> {
     super.initState();
     geolocalizacion();
   }
+
+  ////////////////////////////////---todo para los comando de voz---//////////////////////////////////////////////////////////
+ 
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
 
   scanQR() async {
     String qrResult = '';
@@ -286,11 +292,11 @@ class _ProfileInfoState extends State<ProfileInfo> {
     RepositoryServicesLocal.addMarcado(marcation);
     RepositoryServicesLocal.addEmpleado(perfil);
     RepositoryServicesLocal.addNotificacion(notification);
-    Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        state = 0;
-      });
-    });
+    // Future.delayed(const Duration(seconds: 5), () {
+    //   setState(() {
+    //     state = 0;
+    //   });
+    // });
   }
 
   String tipoMensaje(String fn, PerfilModel model) {
@@ -347,8 +353,9 @@ class _ProfileInfoState extends State<ProfileInfo> {
     notificationModel.fechahora = tiempoActual.toString();
     tiempoText = tipoMensaje(data, model);
     marcationModel.marcadoMotivo = data;
-    services(
-        context, marcationModel, notificationModel, model, model.empleadoToken);
+    //'${model.empleadoNombre} ${model.empleadoApellido}
+    // services(
+    //     context, marcationModel, notificationModel, model, model.empleadoToken);
 
     final screenSize = MediaQuery.of(context).size;
     final screenHeight = screenSize.height / 1.2;
@@ -397,7 +404,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
-              )
+              ),
             ],
           ),
         ),

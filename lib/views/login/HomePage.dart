@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tablet_tower_flutter/adminDashBoard.dart';
-import 'package:tablet_tower_flutter/dashBoard.dart';
+import 'package:tablet_tower_flutter/views/administracion/adminDashBoard.dart';
+import 'package:tablet_tower_flutter/views/marcaciones/dashBoard.dart';
 
 class MyHomePage extends StatefulWidget {
   @override

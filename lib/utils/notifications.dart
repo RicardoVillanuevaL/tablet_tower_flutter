@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tablet_tower_flutter/adminDashBoard.dart';
+import 'package:tablet_tower_flutter/views/administracion/adminDashBoard.dart';
 
 mostraralerta(BuildContext context, String header, String mensaje) {
   return showDialog(

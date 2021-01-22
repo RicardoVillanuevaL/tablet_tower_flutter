@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tablet_tower_flutter/HomePage.dart';
 import 'package:tablet_tower_flutter/database/database.dart';
-import 'package:tablet_tower_flutter/loginPage.dart';
+import 'package:tablet_tower_flutter/views/login/HomePage.dart';
+import 'package:tablet_tower_flutter/views/login/loginPage.dart';
 
 /// Forces landscape-only mode application-wide
 /// Use this Mixin on the main app widget i.e. app.Dart

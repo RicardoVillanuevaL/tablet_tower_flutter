@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tablet_tower_flutter/listaEmpleados.dart';
-import 'package:tablet_tower_flutter/reportePage.dart';
-import 'package:tablet_tower_flutter/sincronizacionPage.dart';
+import 'package:tablet_tower_flutter/views/administracion/listaEmpleados.dart';
+import 'package:tablet_tower_flutter/views/administracion/reportePage.dart';
+import 'package:tablet_tower_flutter/views/administracion/sincronizacionPage.dart';
 
 class AdminDashBoard extends StatefulWidget {
   AdminDashBoard({Key key}) : super(key: key);

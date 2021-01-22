@@ -1,0 +1,4 @@
+verificar lo de la hora 
+agregar temperatura
+subir a play store
+https://pub.dev/packages/flutter_tts

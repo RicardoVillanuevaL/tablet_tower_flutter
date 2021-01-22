@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tablet_tower_flutter/HomePage.dart';
 import 'package:tablet_tower_flutter/utils/notifications.dart' as util;
+import 'package:tablet_tower_flutter/views/login/HomePage.dart';
 
 class LoginPage extends StatefulWidget {
   @override
